@@ -20,11 +20,15 @@ filenames = [
 
 for filename in filenames:
 
-    fig, ax = plt.subplots(nrows=1, ncols=1)
+    fig, axes = plt.subplots(nrows=2, ncols=1)
+    ax = axes.ravel()
     df = pd.read_csv(filename, sep=sep, names=names)
-    df.plot(x='potential_V', y='current_mA', ax=ax)
+    df.plot(x='potential_V', y='current_mA', ax=ax[0])
+    df.plot(x='potential_V', y='current_mA', ax=ax[1], logy=True)
 
     figname = filename[7:]
-    ax.set_title(figname)
-    plt.savefig(fname=f'Graphs/Initial {figname}', format='png')
+    ax[0].set_title(f'{figname} - Raw')
+    ax[1].set_title(f'{figname} - Log')
+    fig.set_size_inches(12, 16)
+    plt.savefig(fname=f'Graphs/Initial {figname}', format='png', dpi=100)
     #plt.show()
