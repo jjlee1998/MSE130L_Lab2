@@ -95,10 +95,10 @@ def j_1018MS(params, phi):
     j0_1 = 10**params['log10_j0_1']
     j0_2 = 10**params['log10_j0_2']
     eta = phi - params['phi_corr']
-
+    
     return j0_1*np.exp(a1*eta) - j0_2*np.exp(-a2*eta)
 
-def j_1018MS_resid(params, phi, j, sigma=None):
+def j_1018MS_resid(params, phi, j):
 
     # note that fitting is done in ln-space, not log10-space
 
@@ -116,9 +116,7 @@ def j_1018MS_resid(params, phi, j, sigma=None):
     
     resid = (alog_j_pred - alog_j)**2
 
-    if sigma is not None:
-        weights = np.exp(-(phi-params['phi_corr'])**2 / (2*sigma**2))
-        resid = weights*resid
+    resid = np.where(np.abs(phi-params['phi_corr']) < 0.0025, 0, resid)
 
     return resid
 
@@ -143,30 +141,29 @@ def fit_1018MS(df):
     params1 = minimize(j_1018MS_resid, params, args=(phi1, j1), method='basinhopping').params
     params2 = minimize(j_1018MS_resid, params, args=(phi2, j2), method='basinhopping').params
 
-    params1.pretty_print()
-    params2.pretty_print()
-
     for param in params1.values():
         param.set(vary=True)
-    params1['phi_corr'].set(vary=False)
+    #params1['phi_corr'].set(vary=False)
 
     for param in params2.values():
         param.set(vary=True)
-    params2['phi_corr'].set(vary=False)
+    #params2['phi_corr'].set(vary=False)
 
-    sigma = 0.1
+    window = 0.1 #mV
+    phi1_fit = phi1[np.abs(phi1-params1['phi_corr'])<window/2]
+    j1_fit = j1[np.abs(phi1-params1['phi_corr'])<window/2]
+    phi2_fit = phi2[np.abs(phi2-params2['phi_corr'])<window/2]
+    j2_fit = j2[np.abs(phi2-params2['phi_corr'])<window/2]
+
     method='least_squares'
-    params1 = minimize(j_1018MS_resid, params1, args=(phi1, j1, sigma), method=method).params
-    params2 = minimize(j_1018MS_resid, params2, args=(phi2, j2, sigma), method=method).params
-
-    params1.pretty_print()
-    params2.pretty_print()
+    params1 = minimize(j_1018MS_resid, params1, args=(phi1_fit, j1_fit), method=method).params
+    params2 = minimize(j_1018MS_resid, params2, args=(phi2_fit, j2_fit), method=method).params
 
     fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.scatter(phi1, np.abs(j1), c='C0', s=1)
-    ax.plot(phi1, np.abs(j_1018MS(params1, phi1)), c='C0')
+    ax.plot(phi1_fit, np.abs(j_1018MS(params1, phi1_fit)), c='C0')
     ax.scatter(phi2, np.abs(j2), c='C3', s=1)
-    ax.plot(phi2, np.abs(j_1018MS(params2, phi2)), c='C3')
+    ax.plot(phi2_fit, np.abs(j_1018MS(params2, phi2_fit)), c='C3')
 
     ax.set_yscale('log')
 
@@ -176,8 +173,10 @@ def fit_1018MS(df):
 
 # actually fit to Scan 0 through Scan 7:
 
-for n in range(8):
-    fit_1018MS(dfs[n])
+#for n in range(8):
+#    fit_1018MS(dfs[n])
+
+
 
 '''
 for filename in filenames:
