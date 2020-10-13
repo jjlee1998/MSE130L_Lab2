@@ -1,0 +1,119 @@
+Take the point of view that you are writing a report to characterize a new batch of 1018 carbon steel and of 304SS rod for a manufacturer.
+
+1. Include in the Experimental Procedure a description of your "lab constructed" potentiostat.  This must include "compliance voltage," which is the 13.4 V maximum counter electrode output; the maximum current; and the current sensitivity.
+
+2a. In each of the two solutions that were used in this lab, identify the reactions that are occuring on the surface of the steel electrodes within the different regions of the polarization curves (note that water synthesis is negligible because (1) O2 is not very soluble in H2SO4 and HCl solutions and (2) the reaction has a low exchange current density):
+
+	304SS 1M H2SO4 (hypothesis):
+	- before first singularity: H reduction (visible bubbling)
+	- first singularity: corrosion potential between H reduction and Fe oxidation
+	- between first and second singularities: Fe oxidation with a developing Cr passivation barrier
+	- second singularity: corrosion potential between H reduction and passivated Fe oxidation
+	- between second and third singularities: H reduction (much lower magnitude than before, explaining lack of visible bubbles)
+	- third singularity: corrosion potential between H reduction and Cr -> Cr III oxidation
+	- flat region: passivation potential, perhaps with the oxidation of trace species leading to a greater response at higher voltage
+	- upturn and eventual peak: destruction of the passivation barrier via Cr III -> Cr VI oxidation (evidenced by reddish ions)
+	- final upturn: oxygen gas evolution via water breakdown (evidenced by violent bubbling)
+	- return curve: no more passivation barrier, so the current follows the Cr III -> Cr VI oxidation line
+	- final singularity: hypothesized to be the intersection between the Cr III <-> Cr VI redox half-reactions:
+		- did not appear on the upward sweep, so it can only occur if there is no passivation barrier
+		- limiting behavior of the reduction half-reaction approaches passivation potential, suggesting barrier restoration
+		- the fact that the potential stays orders of magnitude below the Fe oxidation potential indicates barrier recovery
+		- orders of magnitude higher than the hydrogen reduction line suggested by the previous singularities
+		- main difference is no Cr barrier and plenty of Cr and Fe in solution
+		- can't be Fe deposition since all of it would be immedately reoxidized (too high of a Fe oxidation current)
+
+	304SS 1M HCl (hypothesis):
+	- before first singularity: H reduction (visible bubbling)
+	- first singularity: corrosion potential between H reduction and Fe oxidation
+	- downturn towards local minimum: Fe oxidation with a developing Cr passivation barrier
+	- local minimum: crossover wherein most current now comes from Cr passivation barrier development
+		(assumed that the presence of Cl- instead of SO4 2- results in faster barrier formation, so no singularity)
+	- flat region: passivation potential, perhaps with the oxidation of trace species leading to a greater response at higher voltage
+	- upturn: Cl- ion pitting of the passivation barrier leading to the restoration of the (diffusion-limited) Fe oxidation potential
+	- return flat region: in line with the expected diffusion-limited Fe oxidation curve
+	- final downturn: positioning suggests the oxidation of Cr to Cr III and the recovery of the passivation barrier
+
+	1018 MS 1M H2SO4 and 1M HCL (hypothesis; similar behavior observed):
+	- before singularity: H reduction (visible bubbling)
+	- after singularity: Fe oxidation (no visible ions)
+	- downward sweep singularity appears at potential that is more negative than during the upward sweep...
+		- microstructural model would suggest the other way around due to increased Fe3C surface area
+		- (this would catalyze H reduction and elevate its exchange current density, shifting the intersection rightward)
+		- instead, it appears that the Fe oxidation reaction has manifested an elevated exchange current density on the down-sweep
+		- possibly due to the removal of a "passivation layer" of iron oxides by the Fe oxidation and dissolution on the up-sweep?
+
+2b. Using the data generated during the anodic and cathodic polarization tests, plot log|i_cell| versus potential wrt SCE for 1018MS in both solutions.  Why are the curves measured in 1M HCl so similar to those measured in 1M H2SO4?  Confirm that the anodic and cathodic polarization curves are straight lines, except for a narrow range of potential within approximately 100 mV above and below the corrosion potential.
+	
+	- since the Cl- and SO4 2- ions don't play a prominent role in the reactions at this potential, all that matters in the H+
+	- ...and therefore the chemistry of the reactions about the corrosion potential is the same!
+	- no significant difference in the pH (since HSO4- is a weak acid)
+	- these are straight lines in the small potential limit of the Butler-Volmer equation, and can be confirmed visually by inspection
+
+2c. Use the measured value of the slope (during the 0.1 mV/s scan) and the slopes of the anodic and cathodic polarization curves (1 mV/s scan) to calculate the corrosion rate in 1M HCl and 1M H2SO4.
+
+	- this can be found by considering the small potential limit of the Butler-Volmer equation after plugging in params from the half-rxns
+
+2d. Determine the maximum active dissolution rate of stainless steel in 1M HCl and 1M H2SO4.  Explain the dependency of the maximum active dissolution rate on the chloride ion concentration.
+
+	- HCl: above the pitting potential, the passivation layer locally degrades -> max dissolution rate approaches diffusion-limited Fe oxidation
+	- H2SO4: maximum limit is the same, but requires large overpotential to actively destroy the Cr passivation layer
+	- i.e. the maximum dissolution rate for a given potential is much more easily realized with greater Cl- concentration
+
+2e. Determine a way of characterizing the passivation potentials, then find the passivation potentials for SS in 1M HCl and in 1M H2SO4.  Explain the dependency of the passivation potentials on the chloride ions.
+
+	- fit the passivation oxidation reaction to overshoot, then approach flat limiting behavior (with a separate linear stage afterwards)
+	- define the flat limiting behavior as the passivation potential
+	- this is based upon the Cr passivation modelling in one of the papers, and as such may only be defineable for H2SO4 (HCl doesn't overshoot)
+	- additionally not definable for HCl because the passivation layer keeps trying to re-form in the pits, so current doesn't go down
+	- check H2SO4 result to see if reasonable; if not, then throw our hands in the air and explain why we can't do it!
+	- (alternatively, fit HCl to linear terminal behavior without a drop and call it "steady state"
+	- i.e. the passivation potential defined such that the passivation layer is growing and ablating at the same rate)
+
+2f. Did pitting corrosion occur in either solution for SS?  If so, explain the connection with the solution composition, determine a way of characterizing the pitting potential, and report it.
+
+	- yes, occured for HCl solution
+	- show image of pit as obtained by Chris Kumai
+	- define pitting potential as the point where the pitting curve (also model as self-limiting process?) intersects the passivation curve
+
+2g. Did you notice enhanced corrosion in the portion of the SS sample at the water/air interface?  Why might enhanced corrosion occur at this location?
+
+	- no, only remark is that discoloration (reddish-orange) was observed at the interface for H2SO4; attributed to Cr VI ion complexes
+
+2h. Did the sample repassivate o the reverse scan in the cases where passivity was lost?  Was there a relationship between the repassivation and pitting potentials?
+
+	- H2SO4: repassivated, as indicated by the lack of Fe oxidation potential during the reverse scan + convergence on passivation current
+	- HCl: repassivated, as indicated by the current dropoff in the vicinity of the original passivation potential
+	- H2SO4 repassivation appears as soon as voltage brought below Cr VI evolution potential
+	- HCl repassivation doesn't reappear until the voltage is brought closer to the original ascending passivation potential
+	- suggests that Cl- ions remain active even at lower voltages; consistent with the understanding that Cl pitting is autocatalytic
+
+2i. Calculate the equilibrium potential for the oxidation of chromium in the passive film to chromate ions, which are highly soluble in aqueous solution: Cr2O3 + 5 H2O --> 2 HCrO4- + 8 H+ + 6e- (E0 = 1.259 vs. SHE).  This is possible in the non-chloride solution.  How does the calculated equilibrium potential compare to the potential at which this reaction occurs at a measureable rate as indicated in the polarization curve?
+
+	- calculate this as the corrosion potential that manifests on the decending branch of the 304SS H2SO4 curve (i.e. the singularity)
+	- this is approximately the potential when the reaction makes its appearance on the ascending branch of the curve!
+
+3a. Assume that the carbon concentration of your heat of 1018 steel is 0.18 w/o.  Use the lever role to estimate the fraction of the surface that is composed of pearlite.  Within the pearlite phase, what is the fraction that is Fe3C and the fraction that is ferrite?  What is the total ferrite fraction in the 1018 sample?
+
+	- do this by examining the phase diagram, paying attention to the quench through the gamma+alpha region to produce the alpha/pearlite frac
+	- may need a better phase diagram to pull this off (find and cite source)
+
+3b. Is your polarization data of 1018 carbon steel consistent with the hypothesis that the corrosion of the ferrite phase occurs by the hydroxide-catalyzed mechanism (as given in the Appendum)?  Cite specific aspects of your polarization data that support or refute this hypothesis.
+
+	- generally yes, since the log polarization curves move towards linear behavior in the upper potential limit
+
+3c. According to your cathodic polarization data, is the mechanism of hydrogen ion reduction on 1018 steel the same or different in 1M HCl and 1M H2SO4?  Cite specific aspects of your cathodic polarization curves for evidence that supports your answer.
+
+	- since the mechanism is supposed to be anion-independent, probably the same mechanism
+	- would be evidenced by matchup after overlaying curves (after normalizing by area), indicating identical kinetics
+	- note that molarities should be about the same
+	- could go for a "difference quotient," but might also answer this question qualitatively to save time
+
+3d/3e. Compare the anodic/cathodic polarization curves of 1018 steel during the forward scan and reverse scan.  Do the two curves overlap or is there a hysteresis?  What is the most likely explanation of the hysterisis?
+
+	- hysteresis observed!
+	- hysteresis runs counter-intutively to that which we would expect...
+	- terminal cathodic behavior (hydrogen reduction is the same)...
+	- but terminal anodic behavior (iron oxidation) seems to elevate over the course of the sweep...
+	- hystereses only explained consistently by an elevation of exchange current density for Fe oxidation
+	- perhaps indicates that the sweep up removes some manner of passivation layer (iron oxide?) or diffusion barrier (ion double-layer?)
