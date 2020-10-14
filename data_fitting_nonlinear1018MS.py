@@ -91,11 +91,10 @@ def j_1018MS(params, phi):
 
     a1 = params['a1']
     a2 = params['a2']
-    j0_1 = 10**params['log10_j0_1']
-    j0_2 = 10**params['log10_j0_2']
+    j0 = 10**params['log10_j0']
     eta = phi - params['phi_corr']
     
-    return j0_1*np.exp(a1*eta) - j0_2*np.exp(-a2*eta)
+    return j0*(np.exp(a1*eta) - np.exp(-a2*eta))
 
 def j_1018MS_resid(params, phi, j):
 
@@ -128,8 +127,7 @@ def fit_1018MS(df):
     params = Parameters()
     params.add('a1', value=15, min=0, vary=False)
     params.add('a2', value=20, min=0, vary=False)
-    params.add('log10_j0_1', value=-5.5, vary=False)
-    params.add('log10_j0_2', value=-5.5, vary=False)
+    params.add('log10_j0', value=-5.5, vary=False)
     params.add('phi_corr', value=-0.5, vary=True)
 
     phi1 = df1['potential_V'].values
@@ -163,9 +161,10 @@ def fit_1018MS(df):
 
 # actually fit to Scan 0 through Scan 7:
 
-column_names = ['a1', 'a2', 'j0_1', 'j0_2', 'a1_var', 'a2_var', 'j0_1_var', 'j0_2_var', 'ndata']
+column_names = ['a1', 'a2', 'j0', 'phi_corr', 'a1_var', 'a2_var', 'j0_var', 'phi_corr_var', 'ndata']
 params_idx = pd.MultiIndex.from_product([range(8), ['up', 'down']], names=['scan', 'direction'])
 params_df = pd.DataFrame(index=params_idx, columns=column_names)
+
 
 for n in range(8):
     
@@ -175,42 +174,53 @@ for n in range(8):
     ndata = minres_u.ndata
     a1 = params_u['a1'].value
     a2 = params_u['a2'].value
-    log10_j0_1 = params_u['log10_j0_1'].value
-    log10_j0_2 = params_u['log10_j0_2'].value
+    log10_j0 = params_u['log10_j0'].value
+    phi_corr = params_u['phi_corr'].value
     a1_se = params_u['a1'].stderr
     a2_se = params_u['a2'].stderr
-    log10_j0_1_se = params_u['log10_j0_1'].stderr
-    log10_j0_2_se = params_u['log10_j0_2'].stderr
-    j0_1 = 10**log10_j0_1
-    j0_2 = 10**log10_j0_2
+    log10_j0_se = params_u['log10_j0'].stderr
+    phi_corr_se = params_u['phi_corr'].stderr
+    j0 = 10**log10_j0
     a1_var = ndata * a1_se**2
     a2_var = ndata * a2_se**2
-    j0_1_var = (np.log(10) * j0_1)**2 * ndata * log10_j0_1_se**2
-    j0_2_var = (np.log(10) * j0_2)**2 * ndata * log10_j0_2_se**2
-    params_df.loc[(n, 'up')] = [a1, a2, j0_1, j0_2, a1_var, a2_var, j0_1_var, j0_2_var, ndata]
+    j0_var = (np.log(10) * j0)**2 * ndata * log10_j0_se**2
+    phi_corr_var = ndata * phi_corr_se**2
+    params_df.loc[(n, 'up')] = [a1, a2, j0, phi_corr, a1_var, a2_var, j0_var, phi_corr_var, ndata]
 
     params_d = minres_d.params
     ndata = minres_u.ndata
     a1 = params_d['a1'].value
     a2 = params_d['a2'].value
-    log10_j0_1 = params_d['log10_j0_1'].value
-    log10_j0_2 = params_d['log10_j0_2'].value
+    log10_j0 = params_d['log10_j0'].value
+    phi_corr = params_d['phi_corr'].value
     a1_se = params_d['a1'].stderr
     a2_se = params_d['a2'].stderr
-    log10_j0_1_se = params_d['log10_j0_1'].stderr
-    log10_j0_2_se = params_d['log10_j0_2'].stderr
-    j0_1 = 10**log10_j0_1
-    j0_2 = 10**log10_j0_2
+    log10_j0_se = params_d['log10_j0'].stderr
+    phi_corr_se = params_d['phi_corr'].stderr
+    j0 = 10**log10_j0
     a1_var = ndata * a1_se**2
     a2_var = ndata * a2_se**2
-    j0_1_var = (np.log(10) * j0_1)**2 * ndata * log10_j0_1_se**2
-    j0_2_var = (np.log(10) * j0_2)**2 * ndata * log10_j0_2_se**2
-    params_df.loc[(n, 'down')] = [a1, a2, j0_1, j0_2, a1_var, a2_var, j0_1_var, j0_2_var, ndata]
+    j0_var = (np.log(10) * j0)**2 * ndata * log10_j0_se**2
+    phi_corr_var = ndata * phi_corr_se**2
+    params_df.loc[(n, 'down')] = [a1, a2, j0, phi_corr, a1_var, a2_var, j0_var, phi_corr_var, ndata]
 
     df1.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}u.csv')
     df2.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}d.csv')
 
     print(f'\t[nonlinear1018MS] Scan {n} fit complete and clean data written to file.')
 
+    # uncomment these lines to inspect as we go:
+    '''
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    ax.plot(df1['potential_V'], np.abs(j_1018MS(params_u, df1['potential_V'])), label=f'Scan {n}u')
+    ax.scatter(df1['potential_V'], np.abs(df1['j_mA/mm2']), s=1)
+    ax.plot(df2['potential_V'], np.abs(j_1018MS(params_d, df2['potential_V'])), label=f'Scan {n}d')
+    ax.scatter(df2['potential_V'], np.abs(df2['j_mA/mm2']), s=1)
+    ax.legend()
+    ax.set_yscale('log')
+    plt.show()
+    '''
+
 params_df.to_csv('./Processed Data/nonlinear1018MS_fit_params.csv')
 print('\t[nonlinear1018MS] Fitting parameters written to file.')
+
