@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from lmfit import minimize, Parameters
-from copy import deepcopy
+from lmfit import minimize, Parameters, fit_report
 
 # Scan 0: 1018MS H2SO4 Anodic/Cathodic 1 mA ('./Data/1018MS 1M H2SO4 Cathodic Anodic')
 # Scan 1: 1018MS H2SO4 LPR 1 mA ('./Data/1018MS 1M H2SO4 LPR')
@@ -143,11 +142,9 @@ def fit_1018MS(df):
 
     for param in params1.values():
         param.set(vary=True)
-    #params1['phi_corr'].set(vary=False)
 
     for param in params2.values():
         param.set(vary=True)
-    #params2['phi_corr'].set(vary=False)
 
     window = 0.1 #mV
     phi1_fit = phi1[np.abs(phi1-params1['phi_corr'])<window/2]
@@ -155,49 +152,65 @@ def fit_1018MS(df):
     phi2_fit = phi2[np.abs(phi2-params2['phi_corr'])<window/2]
     j2_fit = j2[np.abs(phi2-params2['phi_corr'])<window/2]
 
-    method='least_squares'
-    params1 = minimize(j_1018MS_resid, params1, args=(phi1_fit, j1_fit), method=method).params
-    params2 = minimize(j_1018MS_resid, params2, args=(phi2_fit, j2_fit), method=method).params
+    method='leastsq'
+    minres1 = minimize(j_1018MS_resid, params1, args=(phi1_fit, j1_fit), method=method)
+    minres2 = minimize(j_1018MS_resid, params2, args=(phi2_fit, j2_fit), method=method)
 
-    fig, ax = plt.subplots(nrows=1, ncols=1)
-    ax.scatter(phi1, np.abs(j1), c='C0', s=1)
-    ax.plot(phi1_fit, np.abs(j_1018MS(params1, phi1_fit)), c='C0')
-    ax.scatter(phi2, np.abs(j2), c='C3', s=1)
-    ax.plot(phi2_fit, np.abs(j_1018MS(params2, phi2_fit)), c='C3')
+    params1 = minres1.params
+    params2 = minres2.params
 
-    ax.set_yscale('log')
-
-    #df1.plot.scatter(x='potential_V', y='abs_j_mA/mm2', ax=ax, c='C0', logy=True, s=1)
-    #df2.plot.scatter(x='potential_V', y='abs_j_mA/mm2', ax=ax, c='C1', logy=True, s=1)
-    plt.show()
+    return df1, df2, minres1, minres2
 
 # actually fit to Scan 0 through Scan 7:
 
-#for n in range(8):
-#    fit_1018MS(dfs[n])
+column_names = ['a1', 'a2', 'j0_1', 'j0_2', 'a1_var', 'a2_var', 'j0_1_var', 'j0_2_var', 'ndata']
+params_idx = pd.MultiIndex.from_product([range(8), ['up', 'down']], names=['scan', 'direction'])
+params_df = pd.DataFrame(index=params_idx, columns=column_names)
 
+for n in range(8):
+    
+    df1, df2, minres_u, minres_d = fit_1018MS(dfs[n])
 
+    params_u = minres_u.params
+    ndata = minres_u.ndata
+    a1 = params_u['a1'].value
+    a2 = params_u['a2'].value
+    log10_j0_1 = params_u['log10_j0_1'].value
+    log10_j0_2 = params_u['log10_j0_2'].value
+    a1_se = params_u['a1'].stderr
+    a2_se = params_u['a2'].stderr
+    log10_j0_1_se = params_u['log10_j0_1'].stderr
+    log10_j0_2_se = params_u['log10_j0_2'].stderr
+    j0_1 = 10**log10_j0_1
+    j0_2 = 10**log10_j0_2
+    a1_var = ndata * a1_se**2
+    a2_var = ndata * a2_se**2
+    j0_1_var = (np.log(10) * j0_1)**2 * ndata * log10_j0_1_se**2
+    j0_2_var = (np.log(10) * j0_2)**2 * ndata * log10_j0_2_se**2
+    params_df.loc[(n, 'up')] = [a1, a2, j0_1, j0_2, a1_var, a2_var, j0_1_var, j0_2_var, ndata]
 
-'''
-for filename in filenames:
+    params_d = minres_d.params
+    ndata = minres_u.ndata
+    a1 = params_d['a1'].value
+    a2 = params_d['a2'].value
+    log10_j0_1 = params_d['log10_j0_1'].value
+    log10_j0_2 = params_d['log10_j0_2'].value
+    a1_se = params_d['a1'].stderr
+    a2_se = params_d['a2'].stderr
+    log10_j0_1_se = params_d['log10_j0_1'].stderr
+    log10_j0_2_se = params_d['log10_j0_2'].stderr
+    j0_1 = 10**log10_j0_1
+    j0_2 = 10**log10_j0_2
+    a1_var = ndata * a1_se**2
+    a2_var = ndata * a2_se**2
+    j0_1_var = (np.log(10) * j0_1)**2 * ndata * log10_j0_1_se**2
+    j0_2_var = (np.log(10) * j0_2)**2 * ndata * log10_j0_2_se**2
+    params_df.loc[(n, 'down')] = [a1, a2, j0_1, j0_2, a1_var, a2_var, j0_1_var, j0_2_var, ndata]
 
-    fig, axes = plt.subplots(nrows=2, ncols=1)
-    ax = axes.ravel()
-    df = pd.read_csv(filename, sep=sep, names=names)
-    df['abs_current_mA'] = np.abs(df['current_mA'])
-    df['progress'] = np.linspace(0, 1, df.shape[0])
-    #df.plot(x='potential_V', y='current_mA', ax=ax[0])
-    df.plot.scatter(x='potential_V', y='current_mA', c='progress',
-            colormap=plt.get_cmap('viridis'), colorbar=True, ax=ax[0], s=1)
-    #df.plot(x='potential_V', y='abs_current_mA', ax=ax[1], logy=True)
-    df.plot.scatter(x='potential_V', y='abs_current_mA', c='progress',
-            colormap=plt.get_cmap('viridis'), colorbar=True, ax=ax[1],
-            logy=True, s=1)
+    df1.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}u.csv')
+    df2.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}d.csv')
 
-    figname = filename[7:]
-    ax[0].set_title(f'{figname} - Raw Data')
-    ax[1].set_title(f'{figname} - Absolute Log')
-    fig.set_size_inches(12, 16)
-    plt.savefig(fname=f'Graphs/Initial {figname}', format='png', dpi=100)
-    #plt.show()
-'''
+    print(f'\t[nonlinear1018MS] Scan {n} fit complete and clean data written to file.')
+
+params_df.to_csv('./Processed Data/nonlinear1018MS_fit_params.csv')
+print('\t[nonlinear1018MS] Fitting parameters written to file.')
