@@ -161,7 +161,7 @@ def fit_1018MS(df):
 
 # actually fit to Scan 0 through Scan 7:
 
-column_names = ['a1', 'a2', 'j0', 'phi_corr', 'a1_var', 'a2_var', 'j0_var', 'phi_corr_se', 'ndata']
+column_names = ['a1', 'a2', 'j0', 'phi_corr', 'a1_var', 'a2_var', 'j0_var', 'phi_corr_var', 'ndata']
 params_idx = pd.MultiIndex.from_product([range(8), ['up', 'down']], names=['scan', 'direction'])
 params_df = pd.DataFrame(index=params_idx, columns=column_names)
 
@@ -184,7 +184,8 @@ for n in range(8):
     a1_var = ndata * a1_se**2
     a2_var = ndata * a2_se**2
     j0_var = (np.log(10) * j0)**2 * ndata * log10_j0_se**2
-    params_df.loc[(n, 'up')] = [a1, a2, j0, phi_corr, a1_var, a2_var, j0_var, phi_corr_se, ndata]
+    phi_corr_var = ndata * phi_corr_se**2
+    params_df.loc[(n, 'up')] = [a1, a2, j0, phi_corr, a1_var, a2_var, j0_var, phi_corr_var, ndata]
 
     params_d = minres_d.params
     ndata = minres_u.ndata
@@ -200,7 +201,8 @@ for n in range(8):
     a1_var = ndata * a1_se**2
     a2_var = ndata * a2_se**2
     j0_var = (np.log(10) * j0)**2 * ndata * log10_j0_se**2
-    params_df.loc[(n, 'down')] = [a1, a2, j0, phi_corr, a1_var, a2_var, j0_var, phi_corr_se, ndata]
+    phi_corr_var = ndata * phi_corr_se**2
+    params_df.loc[(n, 'down')] = [a1, a2, j0, phi_corr, a1_var, a2_var, j0_var, phi_corr_var, ndata]
 
     df1.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}u.csv')
     df2.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}d.csv')

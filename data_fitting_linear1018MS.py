@@ -87,41 +87,20 @@ for n in range(len(dfs_raw)):
 
 # fitting function for 1018MS (Scan 0 through Scan 7):
 
-#def j_1018MS_lin()
+T = 298.15 #K
+R = 8.314 #J/mol*K
+n_e = 2 # electrons exchanged in reaction
+F = 96485 #C/mol
+C = (n_e * F) / (R * T)
 
-
-'''
-
-def j_1018MS(params, phi):
-
-    a1 = params['a1']
-    a2 = params['a2']
-    j0_1 = 10**params['log10_j0_1']
-    j0_2 = 10**params['log10_j0_2']
+def j_1018MS_lin(params, phi):
     eta = phi - params['phi_corr']
-    
-    return j0_1*np.exp(a1*eta) - j0_2*np.exp(-a2*eta)
+    j0 = params['j0']
+    return C * j0 * eta
 
-def j_1018MS_resid(params, phi, j):
-
-    # note that fitting is done in ln-space, not log10-space
-
-    with np.errstate(divide='ignore'):
-        j_pred = j_1018MS(params, phi)
-        alog_j_pred = np.log(np.abs(j_pred))
-        alog_j = np.log(np.abs(j))
-
-    fi = np.finfo(j_pred.dtype)
-    posinf = fi.maxexp
-    neginf = fi.minexp
-
-    alog_j_pred = np.nan_to_num(alog_j_pred, posinf=posinf, neginf=neginf)
-    alog_j = np.nan_to_num(alog_j, posinf=posinf, neginf=neginf)
-    
-    resid = (alog_j_pred - alog_j)**2
-
-    resid = np.where(np.abs(phi-params['phi_corr']) < 0.0025, 0, resid)
-
+def j_1018MS_lin_resid(params, phi, j):
+    j_pred = j_1018MS_lin(params, phi)
+    resid = j_pred - j
     return resid
 
 def fit_1018MS(df):
@@ -130,11 +109,15 @@ def fit_1018MS(df):
     df1 = df.iloc[:split_pt, :]
     df2 = df.iloc[split_pt:, :]
 
+    zerocross1 = np.nonzero(np.diff(np.sign(df1['j_mA/mm2'].values)))[0]
+    zerocross2 = np.nonzero(np.diff(np.sign(df2['j_mA/mm2'].values)))[0]
+    phi_corr_est1 = df1['potential_V'].iloc[zerocross1].values
+    phi_corr_est2 = df2['potential_V'].iloc[zerocross2].values
+    df1 = df1[np.abs(df1['potential_V'] - phi_corr_est1) < 20e-3]
+    df2 = df2[np.abs(df2['potential_V'] - phi_corr_est2) < 20e-3]
+    
     params = Parameters()
-    params.add('a1', value=15, min=0, vary=False)
-    params.add('a2', value=20, min=0, vary=False)
-    params.add('log10_j0_1', value=-5.5, vary=False)
-    params.add('log10_j0_2', value=-5.5, vary=False)
+    params.add('j0', value=1e-6, vary=True)
     params.add('phi_corr', value=-0.5, vary=True)
 
     phi1 = df1['potential_V'].values
@@ -142,33 +125,17 @@ def fit_1018MS(df):
     j1 = df1['j_mA/mm2'].values
     j2 = df2['j_mA/mm2'].values
 
-    params1 = minimize(j_1018MS_resid, params, args=(phi1, j1), method='basinhopping').params
-    params2 = minimize(j_1018MS_resid, params, args=(phi2, j2), method='basinhopping').params
-
-    for param in params1.values():
-        param.set(vary=True)
-
-    for param in params2.values():
-        param.set(vary=True)
-
-    window = 0.1 #mV
-    phi1_fit = phi1[np.abs(phi1-params1['phi_corr'])<window/2]
-    j1_fit = j1[np.abs(phi1-params1['phi_corr'])<window/2]
-    phi2_fit = phi2[np.abs(phi2-params2['phi_corr'])<window/2]
-    j2_fit = j2[np.abs(phi2-params2['phi_corr'])<window/2]
-
-    method='leastsq'
-    minres1 = minimize(j_1018MS_resid, params1, args=(phi1_fit, j1_fit), method=method)
-    minres2 = minimize(j_1018MS_resid, params2, args=(phi2_fit, j2_fit), method=method)
-
+    method = 'leastsq'
+    minres1 = minimize(j_1018MS_lin_resid, params, args=(phi1, j1), method=method)
+    minres2 = minimize(j_1018MS_lin_resid, params, args=(phi2, j2), method=method)
     params1 = minres1.params
     params2 = minres2.params
-
+    
     return df1, df2, minres1, minres2
 
 # actually fit to Scan 0 through Scan 7:
 
-column_names = ['a1', 'a2', 'j0_1', 'j0_2', 'a1_var', 'a2_var', 'j0_1_var', 'j0_2_var', 'ndata']
+column_names = ['j0', 'phi_corr', 'j0_var', 'phi_corr_var', 'C', 'ndata']
 params_idx = pd.MultiIndex.from_product([range(8), ['up', 'down']], names=['scan', 'direction'])
 params_df = pd.DataFrame(index=params_idx, columns=column_names)
 
@@ -178,46 +145,39 @@ for n in range(8):
 
     params_u = minres_u.params
     ndata = minres_u.ndata
-    a1 = params_u['a1'].value
-    a2 = params_u['a2'].value
-    log10_j0_1 = params_u['log10_j0_1'].value
-    log10_j0_2 = params_u['log10_j0_2'].value
-    a1_se = params_u['a1'].stderr
-    a2_se = params_u['a2'].stderr
-    log10_j0_1_se = params_u['log10_j0_1'].stderr
-    log10_j0_2_se = params_u['log10_j0_2'].stderr
-    j0_1 = 10**log10_j0_1
-    j0_2 = 10**log10_j0_2
-    a1_var = ndata * a1_se**2
-    a2_var = ndata * a2_se**2
-    j0_1_var = (np.log(10) * j0_1)**2 * ndata * log10_j0_1_se**2
-    j0_2_var = (np.log(10) * j0_2)**2 * ndata * log10_j0_2_se**2
-    params_df.loc[(n, 'up')] = [a1, a2, j0_1, j0_2, a1_var, a2_var, j0_1_var, j0_2_var, ndata]
+    j0 = params_u['j0'].value
+    phi_corr = params_u['phi_corr'].value
+    j0_se = params_u['j0'].stderr
+    phi_corr_se = params_u['phi_corr'].stderr
+    j0_var = ndata * j0_se**2
+    phi_corr_var = ndata * phi_corr_se**2
+    params_df.loc[(n, 'up')] = [j0, phi_corr, j0_var, phi_corr_var, C, ndata]
 
-    params_d = minres_d.params
+    params_d = minres_u.params
     ndata = minres_u.ndata
-    a1 = params_d['a1'].value
-    a2 = params_d['a2'].value
-    log10_j0_1 = params_d['log10_j0_1'].value
-    log10_j0_2 = params_d['log10_j0_2'].value
-    a1_se = params_d['a1'].stderr
-    a2_se = params_d['a2'].stderr
-    log10_j0_1_se = params_d['log10_j0_1'].stderr
-    log10_j0_2_se = params_d['log10_j0_2'].stderr
-    j0_1 = 10**log10_j0_1
-    j0_2 = 10**log10_j0_2
-    a1_var = ndata * a1_se**2
-    a2_var = ndata * a2_se**2
-    j0_1_var = (np.log(10) * j0_1)**2 * ndata * log10_j0_1_se**2
-    j0_2_var = (np.log(10) * j0_2)**2 * ndata * log10_j0_2_se**2
-    params_df.loc[(n, 'down')] = [a1, a2, j0_1, j0_2, a1_var, a2_var, j0_1_var, j0_2_var, ndata]
+    j0 = params_d['j0'].value
+    phi_corr = params_d['phi_corr'].value
+    j0_se = params_d['j0'].stderr
+    phi_corr_se = params_d['phi_corr'].stderr
+    j0_var = ndata * j0_se**2
+    phi_corr_var = ndata * phi_corr_se**2
+    params_df.loc[(n, 'down')] = [j0, phi_corr, j0_var, phi_corr_var, C, ndata]
 
-    df1.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}u.csv')
-    df2.to_csv(f'./Processed Data/nonlinear1018MS_scan{n}d.csv')
+    df1.to_csv(f'./Processed Data/linear1018MS_scan{n}u.csv')
+    df2.to_csv(f'./Processed Data/linear1018MS_scan{n}d.csv')
 
-    print(f'\t[nonlinear1018MS] Scan {n} fit complete and clean data written to file.')
+    print(f'\t[linear1018MS] Scan {n} fit complete and clean data written to file.')
 
-params_df.to_csv('./Processed Data/nonlinear1018MS_fit_params.csv')
-print('\t[nonlinear1018MS] Fitting parameters written to file.')
+    # uncomment these lines to inspect as we go:
+    '''
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    ax.plot(df1['potential_V'], j_1018MS_lin(params_u, df1['potential_V']), label=f'Scan {n}u')
+    ax.scatter(df1['potential_V'], df1['j_mA/mm2'], s=1)
+    ax.plot(df2['potential_V'], j_1018MS_lin(params_d, df2['potential_V']), label=f'Scan {n}d')
+    ax.scatter(df2['potential_V'], df2['j_mA/mm2'], s=1)
+    ax.legend()
+    plt.show()
+    '''
 
-'''
+params_df.to_csv('./Processed Data/linear1018MS_fit_params.csv')
+print('\t[linear1018MS] Fitting parameters written to file.')
