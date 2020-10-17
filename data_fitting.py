@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.special import erf, lambertw
 from lmfit import minimize, Parameters, fit_report
+from deconvolve import deconvolve, predict_j
 
 # Scan 0: 1018MS H2SO4 Anodic/Cathodic 1 mA ('./Data/1018MS 1M H2SO4 Cathodic Anodic')
 # Scan 1: 1018MS H2SO4 LPR 1 mA ('./Data/1018MS 1M H2SO4 LPR')
@@ -130,154 +131,49 @@ ano_df_d['renorm_potential_V'] = 1*split_phi - ano_df_d['potential_V']
 
 hcl_df = cat_df[::-1].append([ano_df_u, ano_df_d]).reset_index(drop=True)
 
-# fit everything mostly manually with assistance from lmfit:
+# set up diagnostic graph:
 
-def j_304SS_hcl(params, phi, idx):
-
-    phi_split_idx = np.argmax(phi)
-    result = np.zeros_like(phi)
-
-    phi_corr_fe_h = params['phi_corr_fe_h']
-    eta_fe_h = phi - phi_corr_fe_h
-
-    try:
-        j0_h_red = 10**params['log10_j0_h_red']
-        a_h_red = params['a_h_red']
-        rho_h_red = 10**params['log10_rho_h_red']
-        x_h_red = -a_h_red*j0_h_red*rho_h_red*np.exp(a_h_red*eta_fe_h)
-        w_h_red = np.real(lambertw(x_h_red))
-        j_h_red = - w_h_red/(a_h_red*rho_h_red)
-        result += j_h_red
-    except Exception as e:
-        pass
-        #print(e)
-
-    try:
-        j0_fe_ox = 10**params['log10_j0_fe_ox']
-        a_fe_ox = params['a_fe_ox']
-        rho_fe_ox = 10**params['log10_rho_fe_ox']
-        try:
-            a_pass = params['a_pass']
-            eta0_pass = params['phi0_pass'] - phi_corr_fe_h
-            rho_fe_pass = 10**params['log10_rho0_pass']
-            jmak = rho_fe_pass*(1-np.exp(-a_pass*(eta_fe_h-eta0_pass)**3))
-            rho_fe_ox = rho_fe_ox + np.where(eta_fe_h>eta0_pass, jmak, 0)
-        except Exception as e:
-            pass
-        x_fe_ox = a_fe_ox*j0_fe_ox*rho_fe_ox*np.exp(a_fe_ox*eta_fe_h)
-        w_fe_ox = np.real(lambertw(x_fe_ox))
-        j_fe_ox = - w_fe_ox/(a_fe_ox*rho_fe_ox)
-
-        '''
-        if np.isscalar(rho_fe_ox):
-            j_fe_ox = - w_fe_ox/(a_fe_ox*rho_fe_ox)
-        else:
-            with np.errstate(divide='ignore'):
-                j_fe_ox_tmp = j0_fe_ox*np.exp(a_fe_ox*eta_fe_h)
-                j_fe_ox_pass = -w_fe_ox/(a_fe_ox*rho_fe_ox)
-            j_fe_ox = np.where(rho_fe_ox > 0, - j_fe_ox_pass, j_fe_ox_tmp)
-            print(j_fe_ox)
-            '''
-        result += j_fe_ox
-    except Exception as e:
-        pass
-
-    phi_pit = params['phi_pit']
-    eta_pit = phi - phi_pit
-
-    try:
-        j0_cl_pit = 10**params['log10_j0_cl_pit']
-        a_cl_pit = params['a_cl_pit']
-        rho_cl_pit = 10**params['log10_rho_cl_pit']
-        x_cl_pit = a_cl_pit*j0_cl_pit*rho_cl_pit*np.exp(a_cl_pit*eta_pit)
-        w_cl_pit = np.real(lambertw(x_cl_pit))
-        j_cl_pit = - w_cl_pit/(a_cl_pit*rho_cl_pit)
-        result += j_cl_pit
-    except Exception as e:
-        pass
-        #print(e)
-
-
-    return result
-
-def j_304SS_hcl_resid(params, phi, idx, j):
-
-    phi_split_idx = np.argmax(phi)
-
-    with np.errstate(divide='ignore'):
-        j_pred = j_304SS_hcl(params, phi, idx)
-        alog_j_pred = np.log10(np.abs(j_pred))
-        alog_j = np.log10(np.abs(j))
-
-    fi = np.finfo(alog_j_pred.dtype)
-    posinf = fi.maxexp
-    neginf = fi.minexp
-    
-    alog_j_pred = np.nan_to_num(alog_j_pred, posinf=posinf, neginf=neginf)
-    alog_j = np.nan_to_num(alog_j, posinf=posinf, neginf=neginf)
-
-    resid = alog_j_pred - alog_j
-
-    return resid**2
+fig, axes = plt.subplots(nrows=1, ncols=2)
+ax = axes.ravel()
+ax[0].set_yscale('log')
+ax[1].set_yscale('log')
 
 phi_hcl = hcl_df['potential_V'].values
 idx_hcl = hcl_df.index.values
 j_hcl = hcl_df['j_A/mm2'].values
-mask_hcl = np.zeros_like(idx_hcl, dtype=bool)
 
-def lock_params(params):
-    for name, param in params.items():
-        param.set(vary=False)
+ax[0].scatter(phi_hcl, np.abs(j_hcl), s=0.5, c=idx_hcl, cmap='viridis')
+ax[1].scatter(idx_hcl, np.abs(j_hcl), s=0.5, c=idx_hcl, cmap='viridis')
 
-params_hcl = Parameters()
+# fit everything mostly manually with assistance from lmfit using the deconvolve function:
 
-params_hcl.add('phi_corr_fe_h', value=-0.5)
-params_hcl.add('phi_pit', value=-0.50)
+sl_h = np.s_[:700]
+params_h = deconvolve(phi_hcl[sl_h], j_hcl[sl_h], -0.4, -1e-9, -1e2, 5e2, fit=True)
+j_h = predict_j(params_h, phi_hcl[sl_h])
+ax[0].scatter(phi_hcl[sl_h], np.abs(j_h), s=1)
+ax[1].scatter(idx_hcl[sl_h], np.abs(j_h), s=1)
 
-params_hcl.add('log10_j0_h_red', value=-5)
-params_hcl.add('log10_rho_h_red', value=2)
-params_hcl.add('a_h_red', value=-15)
-mask_hcl[:700] = True
-#params_hcl=minimize(j_304SS_hcl_resid, params_hcl, args=(phi_hcl[mask_hcl], idx_hcl[mask_hcl], j_hcl[mask_hcl])).params
-lock_params(params_hcl)
+sl_fe = np.r_[780:1000]
+params_fe = deconvolve(phi_hcl[sl_fe], j_hcl[sl_fe], -0.4, 1e-8, 1e2, 1e3, fit=True)
+j_fe = predict_j(params_fe, phi_hcl[sl_fe])
+ax[0].scatter(phi_hcl[sl_fe], np.abs(j_fe), s=1)
+ax[1].scatter(idx_hcl[sl_fe], np.abs(j_fe), s=1)
 
-params_hcl.add('log10_j0_fe_ox', value=0)
-params_hcl.add('log10_rho_fe_ox', value=3)
-params_hcl.add('a_fe_ox', value=30)
-mask_hcl[700:1000] = True
-mask_hcl[1800:2100] = True
-#params_hcl=minimize(j_304SS_hcl_resid, params_hcl, args=(phi_hcl[mask_hcl], idx_hcl[mask_hcl], j_hcl[mask_hcl])).params
-lock_params(params_hcl)
+sl_pass = np.r_[780:1025, 1275:1450]
+sl_pass_2 = np.r_[780:1450]
+params_pass = deconvolve(phi_hcl[sl_pass], j_hcl[sl_pass], -0.4, 1e-8, 1e2, 1e3, 
+        phi_pass=-0.25, alpha_pass=100, rho_pass=7e3, fit=True)
+j_pass = predict_j(params_pass, phi_hcl[sl_pass_2])
+ax[0].scatter(phi_hcl[sl_pass_2], np.abs(j_pass), s=1)
+ax[1].scatter(idx_hcl[sl_pass_2], np.abs(j_pass), s=1)
 
-params_hcl_dec = params_hcl
+sl_cl = np.r_[1550:1700]
+params_cl = deconvolve(phi_hcl[sl_cl], j_hcl[sl_cl], 0.4, 1e-4, 1e1, 1e1, fit=True)
+j_cl = predict_j(params_cl, phi_hcl[sl_cl])
+ax[0].scatter(phi_hcl[sl_cl], np.abs(j_cl), s=1)
+ax[1].scatter(idx_hcl[sl_cl], np.abs(j_cl), s=1)
 
-mask_hcl[:] = False
-mask_hcl[775:995] = True
-mask_hcl[1350:1450] = True
-params_hcl.add('a_pass', value=1e2)
-params_hcl.add('log10_rho0_pass', value=3.9)
-params_hcl.add('phi0_pass', value=-0.25)
-#params_hcl=minimize(j_304SS_hcl_resid, params_hcl, args=(phi_hcl[mask_hcl], idx_hcl[mask_hcl], j_hcl[mask_hcl])).params
-lock_params(params_hcl)
+# show diagnostic plots:
 
-
-params_hcl.add('log10_j0_cl_pit', value=-8)
-params_hcl.add('log10_rho_cl_pit', value=2)
-params_hcl.add('a_cl_pit', value=20)
-mask_hcl[1550:1650] = True
-#params_hcl=minimize(j_304SS_hcl_resid, params_hcl, args=(phi_hcl[mask_hcl], idx_hcl[mask_hcl], j_hcl[mask_hcl])).params
-lock_params(params_hcl)
-
-j_pred_hcl = j_304SS_hcl(params_hcl, phi_hcl, idx_hcl)
-params_hcl.pretty_print()
-
-fig, axes = plt.subplots(nrows=1, ncols=2)
-ax = axes.ravel()
-ax[0].scatter(phi_hcl, np.abs(j_hcl), s=0.5, c='k')
-ax[0].scatter(phi_hcl, np.abs(j_pred_hcl), c=(j_pred_hcl>0), cmap='viridis', s=1)
-ax[1].scatter(idx_hcl, np.abs(j_hcl), s=0.5, c='k')
-ax[1].scatter(idx_hcl, np.abs(j_pred_hcl), c=(j_pred_hcl>0), cmap='viridis', s=1)
-ax[0].set_yscale('log')
-ax[1].set_yscale('log')
 plt.show()
 
