@@ -13,7 +13,8 @@ def predict_j(params, phi):
     eta_pass = phi - params['phi_pass']
     alpha_pass = params['alpha_pass']
     rho_pass = 10**params['log10_rho_pass']
-    rho_jmak_raw = rho_pass*(1-np.exp(-alpha_pass*eta_pass**3))
+    with np.errstate(over='ignore', invalid='ignore'):
+        rho_jmak_raw = rho_pass*(1-np.exp(-alpha_pass*eta_pass**3))
     rho_jmak = np.where(eta_pass>0, rho_jmak_raw, 0)
 
     rho = rho_lim + rho_jmak
@@ -40,14 +41,15 @@ def j_resid(params, phi, j_data):
 
     return resid
 
-def deconvolve(phi, j_data, phi0, j0, a0, rho_lim, phi_pass=None, alpha_pass=None, rho_pass=None, fit=True):
+def deconvolve(phi, j_data, phi0, j0, a0, rho_lim, phi_pass=None, alpha_pass=None, rho_pass=None, fit=True, lock=False):
 
+    vary = not lock
     params = Parameters()
-    params.add('phi0', value=phi0, vary=True)
-    params.add('log10_j0', value=np.log10(np.abs(j0)))
-    params.add('sign_j0', value=np.sign(j0))
-    params.add('a0', value=a0)
-    params.add('log10_rho_lim', value=np.log10(np.abs(rho_lim)))
+    params.add('phi0', value=phi0, vary=vary)
+    params.add('log10_j0', value=np.log10(np.abs(j0)), vary=vary)
+    params.add('sign_j0', value=np.sign(j0), vary=vary)
+    params.add('a0', value=a0, vary=vary)
+    params.add('log10_rho_lim', value=np.log10(np.abs(rho_lim)), vary=vary)
 
     if (phi_pass is not None) and (alpha_pass is not None) and (rho_pass is not None):
         params.add('phi_pass', value=phi_pass)

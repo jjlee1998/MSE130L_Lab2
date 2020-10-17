@@ -142,38 +142,73 @@ phi_hcl = hcl_df['potential_V'].values
 idx_hcl = hcl_df.index.values
 j_hcl = hcl_df['j_A/mm2'].values
 
-ax[0].scatter(phi_hcl, np.abs(j_hcl), s=0.5, c=idx_hcl, cmap='viridis')
-ax[1].scatter(idx_hcl, np.abs(j_hcl), s=0.5, c=idx_hcl, cmap='viridis')
+ax[0].scatter(phi_hcl, np.abs(j_hcl), s=0.5, c='k')
+ax[1].scatter(idx_hcl, np.abs(j_hcl), s=0.5, c='k')
 
 # fit everything mostly manually with assistance from lmfit using the deconvolve function:
 
 sl_h = np.s_[:700]
 params_h = deconvolve(phi_hcl[sl_h], j_hcl[sl_h], -0.4, -1e-9, -1e2, 5e2, fit=True)
 j_h = predict_j(params_h, phi_hcl[sl_h])
+j_h_dcv = predict_j(params_h, phi_hcl)
+j_hcl = j_hcl - j_h_dcv
 ax[0].scatter(phi_hcl[sl_h], np.abs(j_h), s=1)
 ax[1].scatter(idx_hcl[sl_h], np.abs(j_h), s=1)
 
-sl_fe = np.r_[780:1000]
+'''
+#sl_fe = np.r_[770:1000, 1800:2100]
+sl_fe = np.r_[770:820, 1800:2100]
 params_fe = deconvolve(phi_hcl[sl_fe], j_hcl[sl_fe], -0.4, 1e-8, 1e2, 1e3, fit=True)
 j_fe = predict_j(params_fe, phi_hcl[sl_fe])
+j_fe_dcv = predict_j(params_fe, phi_hcl)
+#j_hcl = j_hcl - j_fe_dcv
 ax[0].scatter(phi_hcl[sl_fe], np.abs(j_fe), s=1)
 ax[1].scatter(idx_hcl[sl_fe], np.abs(j_fe), s=1)
+'''
 
-sl_pass = np.r_[780:1025, 1275:1450]
+sl_pass = np.r_[770:1025, 1275:1450]
 sl_pass_2 = np.r_[780:1450]
 params_pass = deconvolve(phi_hcl[sl_pass], j_hcl[sl_pass], -0.4, 1e-8, 1e2, 1e3, 
-        phi_pass=-0.25, alpha_pass=100, rho_pass=7e3, fit=True)
+        phi_pass=-0.20, alpha_pass=1000, rho_pass=7e3, fit=True)
+'''
+params_pass = deconvolve(phi_hcl[sl_pass], j_hcl[sl_pass], 
+        params_fe['phi0'].value,
+        params_fe['sign_j0'] * 10**params_fe['log10_j0'].value,
+        params_fe['a0'],
+        10**params_fe['log10_rho_lim'].value, 
+        phi_pass=-0.20, alpha_pass=1000, rho_pass=7e3, fit=True, lock=True)
+        '''
 j_pass = predict_j(params_pass, phi_hcl[sl_pass_2])
+j_pass_dcv = predict_j(params_pass, phi_hcl)
+j_hcl = j_hcl - j_pass_dcv
 ax[0].scatter(phi_hcl[sl_pass_2], np.abs(j_pass), s=1)
 ax[1].scatter(idx_hcl[sl_pass_2], np.abs(j_pass), s=1)
 
-sl_cl = np.r_[1550:1700]
+sl_cl = np.r_[1500:1650]
 params_cl = deconvolve(phi_hcl[sl_cl], j_hcl[sl_cl], 0.4, 1e-4, 1e1, 1e1, fit=True)
 j_cl = predict_j(params_cl, phi_hcl[sl_cl])
+j_cl_dcv = predict_j(params_cl, phi_hcl)
+j_hcl = j_hcl - j_cl_dcv
 ax[0].scatter(phi_hcl[sl_cl], np.abs(j_cl), s=1)
 ax[1].scatter(idx_hcl[sl_cl], np.abs(j_cl), s=1)
 
+params_fe = params_pass
+params_fe['log10_rho_pass'].set(value=np.finfo(np.float).minexp)
+j_fe_dcv = predict_j(params_fe, phi_hcl)
+
 # show diagnostic plots:
+
+j_dcv = j_h_dcv + j_pass_dcv + j_cl_dcv
+j_dcv_pit = j_h_dcv + j_fe_dcv
+
+#ax[0].scatter(phi_hcl, np.abs(j_dcv), s=0.5, c=(j_dcv>0), cmap='viridis')
+#ax[1].scatter(idx_hcl, np.abs(j_dcv), s=0.5, c=(j_dcv>0), cmap='viridis')
+
+ax[0].plot(phi_hcl, np.abs(j_dcv))
+ax[1].plot(idx_hcl, np.abs(j_dcv))
+
+ax[0].plot(phi_hcl, np.abs(j_dcv_pit))
+ax[1].plot(idx_hcl, np.abs(j_dcv_pit))
 
 plt.show()
 
