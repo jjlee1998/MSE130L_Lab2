@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.special import erf, lambertw
 from lmfit import minimize, Parameters, fit_report
-from deconvolve import deconvolve, predict_j
+from deconvolve import deconvolve, predict_j, params_to_dfs
 
 # Scan 0: 1018MS H2SO4 Anodic/Cathodic 1 mA ('./Data/1018MS 1M H2SO4 Cathodic Anodic')
 # Scan 1: 1018MS H2SO4 LPR 1 mA ('./Data/1018MS 1M H2SO4 LPR')
@@ -126,34 +126,39 @@ ax[1].scatter(idx_hcl, np.abs(j_hcl), s=0.5, c='k')
 # fit everything mostly manually with assistance from lmfit using the deconvolve function:
 
 sl_h = np.s_[:700]
-params_h = deconvolve(phi_hcl[sl_h], j_hcl[sl_h], -0.4, -1e-9, -1e2, 5e2, fit=True)
+params_h, minres_h = deconvolve(phi_hcl[sl_h], j_hcl[sl_h], -0.4, -1e-9, -1e2, 5e2, fit=True)
 j_h = predict_j(params_h, phi_hcl[sl_h])
 j_h_dcv = predict_j(params_h, phi_hcl)
 j_hcl = j_hcl - j_h_dcv
 ax[0].scatter(phi_hcl[sl_h], np.abs(j_h), s=1)
 ax[1].scatter(idx_hcl[sl_h], np.abs(j_h), s=1)
+print('\t[304SS_hcl] Hydrogen reduction deconvolved.')
 
 sl_pass = np.r_[770:1025, 1275:1450]
 sl_pass_2 = np.r_[780:1450]
-params_pass = deconvolve(phi_hcl[sl_pass], j_hcl[sl_pass], -0.4, 1e-8, 1e2, 1e3, 
+params_pass, minres_pass = deconvolve(phi_hcl[sl_pass], j_hcl[sl_pass], -0.4, 1e-8, 1e2, 1e3, 
         phi_pass=-0.20, alpha_pass=1000, rho_pass=7e3, fit=True)
 j_pass = predict_j(params_pass, phi_hcl[sl_pass_2])
 j_pass_dcv = predict_j(params_pass, phi_hcl)
 j_hcl = j_hcl - j_pass_dcv
 ax[0].scatter(phi_hcl[sl_pass_2], np.abs(j_pass), s=1)
 ax[1].scatter(idx_hcl[sl_pass_2], np.abs(j_pass), s=1)
+print('\t[304SS_hcl] Passivation potential deconvolved.')
 
 sl_cl = np.r_[1500:1650]
-params_cl = deconvolve(phi_hcl[sl_cl], j_hcl[sl_cl], 0.4, 1e-4, 1e1, 1e1, fit=True)
+params_cl, minres_cl = deconvolve(phi_hcl[sl_cl], j_hcl[sl_cl], 0.4, 1e-4, 1e1, 1e1, fit=True)
 j_cl = predict_j(params_cl, phi_hcl[sl_cl])
 j_cl_dcv = predict_j(params_cl, phi_hcl)
 j_hcl = j_hcl - j_cl_dcv
 ax[0].scatter(phi_hcl[sl_cl], np.abs(j_cl), s=1)
 ax[1].scatter(idx_hcl[sl_cl], np.abs(j_cl), s=1)
+print('\t[304SS_hcl] Chloride pitting deconvolved.')
 
 params_fe = params_pass
+minres_fe = minres_pass
 params_fe['log10_rho_pass'].set(value=np.finfo(np.float).minexp)
 j_fe_dcv = predict_j(params_fe, phi_hcl)
+print('\t[304SS_hcl] Iron oxidation deconvolved.')
 
 # show diagnostic plots:
 
@@ -169,5 +174,18 @@ ax[1].plot(idx_hcl, np.abs(j_dcv))
 ax[0].plot(phi_hcl, np.abs(j_dcv_pit))
 ax[1].plot(idx_hcl, np.abs(j_dcv_pit))
 
-plt.show()
+#plt.show()
 
+params_dict = {
+        'hydrogen_reduction': params_h,
+        'iron_oxidation': params_fe,
+        'iron_ox_passivation': params_pass,
+        'cl_pitting': params_cl
+        }
+
+params_val_df = params_to_dfs(params_dict)
+
+hcl_df.to_csv('./Processed Data/304SS_hcl_merged_scan.csv')
+print('\t[304SS_hcl] Merged dataset written to file.')
+params_val_df.to_csv('./Processed Data/304SS_hcl_fit_params.csv')
+print('\t[304SS_hcl] Fitting parameters written to file.')

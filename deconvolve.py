@@ -80,7 +80,49 @@ def deconvolve(phi, j_data, phi0, j0, a0, rho_lim, phi_pass=None, alpha_pass=Non
         params.add('alpha_pass', value=0, vary=False)
         params.add('log10_rho_pass', value=np.finfo(phi.dtype).minexp)
 
-    if fit:
-        params = minimize(j_resid, params, args=(phi, j_data, rev_pass), method='leastsq').params
+    minres=None
 
-    return params
+    if fit:
+        minres = minimize(j_resid, params, args=(phi, j_data, rev_pass), method='leastsq')
+        params = minres.params
+
+    return params, minres
+
+def params_to_dfs(params_dict):
+
+    column_names = ['reaction', 'phi0', 'j0', 'a0', 'rho_lim', 'phi_pass', 'alpha_pass', 'rho_pass']
+    params_val_df = pd.DataFrame(columns=column_names)
+    params_val_df.set_index('reaction', inplace=True, drop=True)
+
+    params_var_df = pd.DataFrame(columns=column_names)
+    params_var_df.set_index('reaction', inplace=True, drop=True)
+
+    for rxn, params in params_dict.items():
+
+        #params = minres.params
+        #ndata = minres.ndata
+        #params.pretty_print()
+
+        phi0 = params['phi0'].value
+        j0 = params['sign_j0'].value * 10**params['log10_j0'].value
+        a0 = params['a0'].value
+        rho_lim = 10**params['log10_rho_lim'].value
+        phi_pass = params['phi_pass'].value
+        alpha_pass = params['alpha_pass'].value
+        rho_pass = 10**params['log10_rho_pass'].value
+        params_val_df.loc[rxn, :] = [phi0, j0, a0, rho_lim, phi_pass, alpha_pass, rho_pass]
+
+        '''
+        phi0_se = params['phi0'].stderr
+        j0_se = params['sign_j0'].stderr * 10**params['log10_j0'].stderr
+        a0_se = params['a0'].stderr
+        rho_lim_se = 10**params['log10_rho_lim'].stderr
+        phi_pass_se = params['phi_pass'].stderr
+        alpha_pass_se = params['alpha_pass'].stderr
+        rho_pass_se = 10**params['log10_rho_pass'].stderr
+        se_array = np.asarray([phi0_se, j0_se, a0_se, rho_lim_se, phi_pass_se, alpha_pass_se, rho_pass_se])
+        var_array = se_array**2 * n_data
+        params_var_df.loc[rxn, :] = var_array
+        '''
+
+    return params_val_df

@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 from scipy.special import erf, lambertw
 from lmfit import minimize, Parameters, fit_report
-from deconvolve import deconvolve, predict_j, basic_j
+from deconvolve import deconvolve, predict_j, basic_j, params_to_dfs
 
 # Scan 0: 1018MS H2SO4 Anodic/Cathodic 1 mA ('./Data/1018MS 1M H2SO4 Cathodic Anodic')
 # Scan 1: 1018MS H2SO4 LPR 1 mA ('./Data/1018MS 1M H2SO4 LPR')
@@ -128,82 +128,82 @@ ax[1].scatter(idx_so4, np.abs(j_so4_raw), s=0.5, c='k')
 # fit everything mostly manually with assistance from lmfit using the deconvolve function:
 
 sl_h = np.s_[0:450]
-params_h = deconvolve(phi_so4[sl_h], j_so4_asc[sl_h], -0.4, -1e-9, -5e1, 5e2, fit=True)
+params_h, minres_h = deconvolve(phi_so4[sl_h], j_so4_asc[sl_h], -0.4, -1e-9, -5e1, 5e2, fit=True)
 j_h = predict_j(params_h, phi_so4[sl_h])
 j_h_dcv = predict_j(params_h, phi_so4)
 j_so4_asc = j_so4_asc - j_h_dcv
 j_so4_dec = j_so4_dec - j_h_dcv
 ax[0].scatter(phi_so4[sl_h], np.abs(j_h), s=1)
 ax[1].scatter(idx_so4[sl_h], np.abs(j_h), s=1)
+print('\t[304SS_h2so4] Hydrogen reduction deconvolved.')
 
 sl_h2o_asc = np.r_[2500:2679]
-params_h2o_asc = deconvolve(phi_so4[sl_h2o_asc], j_so4_asc[sl_h2o_asc], 1.6, 1e-4, 1e1, 1e-5, fit=True)
+params_h2o_asc, minres_h2o_asc = deconvolve(phi_so4[sl_h2o_asc], j_so4_asc[sl_h2o_asc], 1.6, 1e-4, 1e1, 1e-5, fit=True)
 j_h2o_asc = basic_j(params_h2o_asc, phi_so4[sl_h2o_asc])
 j_h2o_asc_dcv = basic_j(params_h2o_asc, phi_so4)
 j_so4_asc = j_so4_asc - j_h2o_asc_dcv
 ax[0].scatter(phi_so4[sl_h2o_asc], np.abs(j_h2o_asc), s=1)
 ax[1].scatter(idx_so4[sl_h2o_asc], np.abs(j_h2o_asc), s=1)
+print('\t[304SS_h2so4] Water breakdown (ascending) deconvolved.')
 
 sl_pass = np.r_[560:700, 1050:1600]
 sl_pass_2 = np.r_[560:1600]
-params_pass = deconvolve(phi_so4[sl_pass], j_so4_asc[sl_pass], -0.4, 1e-6, 1e1, 1e3, 
+params_pass, minres_pass = deconvolve(phi_so4[sl_pass], j_so4_asc[sl_pass], -0.4, 1e-6, 1e1, 1e3, 
         phi_pass=-0.20, alpha_pass=100, rho_pass=6e6, fit=True)
 j_pass = predict_j(params_pass, phi_so4[sl_pass_2])
 j_pass_dcv = predict_j(params_pass, phi_so4, pr=False)
 j_so4_asc = j_so4_asc - j_pass_dcv
 ax[0].scatter(phi_so4[sl_pass_2], np.abs(j_pass), s=1)
 ax[1].scatter(idx_so4[sl_pass_2], np.abs(j_pass), s=1)
+print('\t[304SS_h2so4] Passivation potential deconvolved.')
 
 sl_cr_asc = np.r_[1875:2450]
-params_cr_asc = deconvolve(phi_so4[sl_cr_asc], j_so4_asc[sl_cr_asc], 1, 1e-7, 5e1, 1e3,
+params_cr_asc, minres_cr_asc = deconvolve(phi_so4[sl_cr_asc], j_so4_asc[sl_cr_asc], 1, 1e-7, 5e1, 1e3,
         phi_pass=1.3, alpha_pass=1000, rho_pass=3e3, fit=True)
 j_cr_asc = predict_j(params_cr_asc, phi_so4[sl_cr_asc])
 j_cr_asc_dcv = predict_j(params_cr_asc, phi_so4)
 j_so4_asc = j_so4_asc - j_cr_asc_dcv
 ax[0].scatter(phi_so4[sl_cr_asc], np.abs(j_cr_asc), s=1)
 ax[1].scatter(idx_so4[sl_cr_asc], np.abs(j_cr_asc), s=1)
+print('\t[304SS_h2so4] Chromium breakdown (ascending) deconvolved.')
 
 sl_h2o_dec = np.r_[2700:2825]
-params_h2o_dec = deconvolve(phi_so4[sl_h2o_dec], j_so4_dec[sl_h2o_dec], 1.6, 1e-4, 1e1, 1e-5, fit=True)
+params_h2o_dec, minres_h2o_dec = deconvolve(phi_so4[sl_h2o_dec], j_so4_dec[sl_h2o_dec], 1.6, 1e-4, 1e1, 1e-5, fit=True)
 j_h2o_dec = basic_j(params_h2o_dec, phi_so4[sl_h2o_dec])
 j_h2o_dec_dcv = basic_j(params_h2o_dec, phi_so4)
 j_so4_dec = j_so4_dec - j_h2o_dec_dcv
 ax[0].scatter(phi_so4[sl_h2o_dec], np.abs(j_h2o_dec), s=1)
 ax[1].scatter(idx_so4[sl_h2o_dec], np.abs(j_h2o_dec), s=1)
+print('\t[304SS_h2so4] Water breakdown (descending) deconvolved.')
 
 sl_cr_sol = np.r_[3620:3698]
-params_cr_sol = deconvolve(phi_so4[sl_cr_sol], j_so4_dec[sl_cr_sol], 1, -1e-6, -1e3, 1e7, fit=True)
+params_cr_sol, minres_cr_sol = deconvolve(phi_so4[sl_cr_sol], j_so4_dec[sl_cr_sol], 1, -1e-6, -1e3, 1e7, fit=True)
 j_cr_sol = predict_j(params_cr_sol, phi_so4[sl_cr_sol])
 j_cr_sol_dcv = predict_j(params_cr_sol, phi_so4)
 j_so4_dec = j_so4_dec - j_cr_sol_dcv
 ax[0].scatter(phi_so4[sl_cr_sol], np.abs(j_cr_sol), s=1)
 ax[1].scatter(idx_so4[sl_cr_sol], np.abs(j_cr_sol), s=1)
+print('\t[304SS_h2so4] Chromium VI -> III deposition deconvolved.')
 
 sl_cr_dec = np.r_[2950:3520]
-params_cr_dec = deconvolve(phi_so4[sl_cr_dec], j_so4_dec[sl_cr_dec], 1, 1e-7, 5e1, 1e3,
+params_cr_dec, minres_cr_dec = deconvolve(phi_so4[sl_cr_dec], j_so4_dec[sl_cr_dec], 1, 1e-7, 5e1, 1e3,
         phi_pass=1.3, alpha_pass=1000, rho_pass=3e3, fit=True)
 j_cr_dec = predict_j(params_cr_dec, phi_so4[sl_cr_dec])
 j_cr_dec_dcv = predict_j(params_cr_dec, phi_so4)
 j_so4_dec = j_so4_dec - j_cr_dec_dcv
 ax[0].scatter(phi_so4[sl_cr_dec], np.abs(j_cr_dec), s=1)
 ax[1].scatter(idx_so4[sl_cr_dec], np.abs(j_cr_dec), s=1)
+print('\t[304SS_h2so4] Chromium breakdown (descending) deconvolved.')
 
 sl_sng = np.r_[700:1000]
-params_sng = deconvolve(phi_so4[sl_sng], j_so4_raw[sl_sng], 0.15, -5e-11, -7e1, 2e5,
+params_sng, minres_sng = deconvolve(phi_so4[sl_sng], j_so4_raw[sl_sng], 0.15, -5e-11, -7e1, 2e5,
         phi_pass=-0.03, alpha_pass=10, rho_pass=1e7, rev_pass=True, fit=False)
 j_sng = predict_j(params_sng, phi_so4[sl_sng], rev_pass=True)
 j_sng_dcv = predict_j(params_sng, phi_so4, rev_pass=True)
 #j_so4_asc = j_so4_asc - j_sng_dcv
 ax[0].scatter(phi_so4[sl_sng], np.abs(j_sng), s=3)
 ax[1].scatter(idx_so4[sl_sng], np.abs(j_sng), s=3)
-
-'''
-
-
-params_fe = params_pass
-params_fe['log10_rho_pass'].set(value=np.finfo(np.float).minexp)
-j_fe_dcv = predict_j(params_fe, phi_so4)
-'''
+print('\t[304SS_h2so4] Singularity reduction source deconvolved.')
 
 # show diagnostic plots:
 
@@ -222,5 +222,22 @@ ax[1].plot(idx_so4, np.abs(j_dcv_asc))
 ax[0].plot(phi_so4, np.abs(j_dcv_dec))
 ax[1].plot(idx_so4, np.abs(j_dcv_dec))
 
-plt.show()
+#plt.show()
 
+params_dict = {
+        'hydrogen_reduction': params_h,
+        'iron_ox_passivation': params_pass,
+        'cr_breakdown_asc': params_cr_asc,
+        'h2o_breakdown_asc': params_h2o_asc,
+        'singularity_asc': params_sng,
+        'cr_deposition': params_cr_sol,
+        'cr_breakdown_dec': params_cr_dec,
+        'h2o_breakdown_dec': params_h2o_dec
+        }
+
+params_val_df = params_to_dfs(params_dict)
+
+so4_df.to_csv('./Processed Data/304SS_h2so4_merged_scan.csv')
+print('\t[304SS_h2so4] Merged dataset written to file.')
+params_val_df.to_csv('./Processed Data/304SS_h2so4_fit_params.csv')
+print('\t[304SS_h2so4] Fitting parameters written to file.')
