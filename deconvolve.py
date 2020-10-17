@@ -3,29 +3,49 @@ import pandas as pd
 from scipy.special import lambertw
 from lmfit import Parameters, minimize, fit_report
 
-def predict_j(params, phi):
+def basic_j(params, phi):
+    
+    eta = phi - params['phi0']
+    j0 = params['sign_j0'] * 10**params['log10_j0']
+    a0 = params['a0']
+    return j0*np.exp(a0*eta)
+
+def predict_j(params, phi, pr=False, rev_pass=False):
 
     eta = phi - params['phi0']
     j0 = params['sign_j0'] * 10**params['log10_j0']
     a0 = params['a0']
     rho_lim = 10**params['log10_rho_lim']
 
-    eta_pass = phi - params['phi_pass']
+    eta_pass = phi-params['phi_pass'] if not rev_pass else params['phi_pass']-phi
     alpha_pass = params['alpha_pass']
     rho_pass = 10**params['log10_rho_pass']
+
     with np.errstate(over='ignore', invalid='ignore'):
+
         rho_jmak_raw = rho_pass*(1-np.exp(-alpha_pass*eta_pass**3))
-    rho_jmak = np.where(eta_pass>0, rho_jmak_raw, 0)
+        rho_jmak = np.where(eta_pass>0, rho_jmak_raw, 0)
 
-    rho = rho_lim + rho_jmak
+        rho = rho_lim + rho_jmak
 
-    x = a0*j0*rho*np.exp(a0*eta)
-    w = np.real(lambertw(x))
-    j_pred = w/a0/rho
+        x = a0*j0*rho*np.exp(a0*eta)
+        w = np.real(lambertw(x))
+
+        j_pred_w = w/a0/rho
+        j_pred_p = eta/(rho_pass+rho_lim)
+        j_pred = np.where(np.isinf(j_pred_w), j_pred_p, j_pred_w)
+
+        if pr:
+            print(j_pred)
+            print(eta_pass)
+            print(rho_jmak)
+            print(rho)
+            print(j_pred_w)
+            print(j_pred_p)
 
     return j_pred
 
-def j_resid(params, phi, j_data):
+def j_resid(params, phi, j_data, rev_pass=False):
 
     with np.errstate(divide='ignore'):
         j_pred = predict_j(params, phi)
@@ -41,7 +61,7 @@ def j_resid(params, phi, j_data):
 
     return resid
 
-def deconvolve(phi, j_data, phi0, j0, a0, rho_lim, phi_pass=None, alpha_pass=None, rho_pass=None, fit=True, lock=False):
+def deconvolve(phi, j_data, phi0, j0, a0, rho_lim, phi_pass=None, alpha_pass=None, rho_pass=None, fit=True, lock=False, rev_pass=False):
 
     vary = not lock
     params = Parameters()
@@ -61,6 +81,6 @@ def deconvolve(phi, j_data, phi0, j0, a0, rho_lim, phi_pass=None, alpha_pass=Non
         params.add('log10_rho_pass', value=np.finfo(phi.dtype).minexp)
 
     if fit:
-        params = minimize(j_resid, params, args=(phi, j_data), method='leastsq').params
+        params = minimize(j_resid, params, args=(phi, j_data, rev_pass), method='leastsq').params
 
     return params

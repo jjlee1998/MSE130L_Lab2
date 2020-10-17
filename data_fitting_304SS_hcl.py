@@ -1,7 +1,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.special import erf, lambertw
 from lmfit import minimize, Parameters, fit_report
+from deconvolve import deconvolve, predict_j
 
 # Scan 0: 1018MS H2SO4 Anodic/Cathodic 1 mA ('./Data/1018MS 1M H2SO4 Cathodic Anodic')
 # Scan 1: 1018MS H2SO4 LPR 1 mA ('./Data/1018MS 1M H2SO4 LPR')
@@ -26,7 +28,7 @@ from lmfit import minimize, Parameters, fit_report
 # read in raw data in designated scan order:
 
 sep = '\t'
-names = ['potential_V', 'current_mA']
+names = ['potential_V', 'current_A']
 filenames = [
 './Data/1018MS 1M H2SO4 Cathodic Anodic',
 './Data/1018MS 1M H2SO4 LPR',
@@ -75,59 +77,15 @@ for n in range(len(dfs_raw)):
     df_raw = dfs_raw[n]
     df = df_raw.copy()
     for idx in remove_idxes[n]:
-        df['current_mA'].iloc[idx] = np.nan
+        df['current_A'].iloc[idx] = np.nan
     if n == 11:
-        df['current_mA'].iloc[1533:1551] = 10 * df['current_mA'].iloc[1533:1551]
+        df['current_A'].iloc[1533:1551] = 10 * df['current_A'].iloc[1533:1551]
     area_mm = (np.pi * diameter * immersion[n]) + (np.pi * diameter**2 / 4)
-    df['j_A/mm2'] = df['current_mA'] / area_mm
+    df['j_A/mm2'] = df['current_A'] / area_mm
     df['abs_j_mA/mm2'] = np.abs(df['j_A/mm2'])
     df['progress'] = np.linspace(0, 1, df.shape[0])
     df.dropna(inplace=True)
     dfs.append(df)
-
-# utility fitting function for local (+-20 mV unless specified otherwise) linear region:
-
-def j_304SS_lin(params, phi):
-    eta = phi - params['phi_corr']
-    j0 = 10**params['log10_j0']
-    a = params['a']
-    return j0*np.exp(a*eta)
-
-def j_304SS_lin_resid(params, phi, j):
-
-    with np.errstate(divide='ignore'):
-        j_pred = j_304SS_lin(params, phi)
-        alog_j_pred = np.log10(np.abs(j_pred))
-        alog_j = np.log10(np.abs(j))
-
-    fi = np.finfo(j_pred.dtype)
-    posinf = fi.maxexp
-    neginf = fi.minexp
-
-    alog_j_pred = np.nan_to_num(alog_j_pred, posinf=posinf, neginf=neginf)
-    alog_j = np.nan_to_num(alog_j, posinf=posinf, neginf=neginf)
-    
-    resid = alog_j_pred - alog_j
-
-    return resid
-
-def j_304SS_fit_linear(df, idx, a0=0, wr=20e-3):
-
-    params = Parameters()
-    params.add('a', value=a0, vary=True)
-    params.add('log10_j0', value=-5.5, vary=True)
-    params.add('phi_corr', value=-0.5, vary=True)
-
-    phi_mid = df['potential_V'].iloc[idx]
-    df_mask1 = df['potential_V'] < phi_mid + wr
-    df_mask2 = df['potential_V'] > phi_mid - wr
-    df_masked = df[np.logical_and(df_mask1, df_mask2)]
-
-    phi = df_masked['potential_V']
-    j = df_masked['j_A/mm2']
-    minres = minimize(j_304SS_lin_resid, params, args=(phi, j), method='leastsq')
-
-    return minres, df_masked
 
 # create combined HCl dataset:
 
@@ -139,72 +97,77 @@ zero_idx_ano = np.argmax(np.abs(np.diff(np.sign(ano_df['j_A/mm2']))))
 phi0_cat = cat_df['potential_V'].iloc[zero_idx_cat]
 phi0_ano = ano_df['potential_V'].iloc[zero_idx_ano]
 cat_df['potential_V'] = cat_df['potential_V'] - phi0_cat + phi0_ano
+cat_df = cat_df[10:]
 
-split_idx = np.argmax(np.diff(ano_df['potential_V'].values) < 0)
+split_idx = np.argmax(ano_df['potential_V'].values)
 ano_df_u = ano_df.iloc[23:split_idx, :].copy()
 ano_df_d = ano_df.iloc[split_idx:, :].copy()
 split_phi = ano_df['potential_V'].iloc[split_idx]
-
 cat_df['renorm_potential_V'] = cat_df['potential_V']
 ano_df_u['renorm_potential_V'] = ano_df_u['potential_V']
-ano_df_d['renorm_potential_V'] = 2*split_phi - ano_df_d['potential_V']
+ano_df_d['renorm_potential_V'] = 1*split_phi - ano_df_d['potential_V']
 
 hcl_df = cat_df[::-1].append([ano_df_u, ano_df_d]).reset_index(drop=True)
 
-# deconvolve the H+ reduction reaction:
+# set up diagnostic graph:
 
-fig, ax = plt.subplots(nrows=1, ncols=1)
+fig, axes = plt.subplots(nrows=1, ncols=2)
+ax = axes.ravel()
+ax[0].set_yscale('log')
+ax[1].set_yscale('log')
 
-fit_idx_h = 660 #hcl
-minres_h, df_h = j_304SS_fit_linear(hcl_df, fit_idx_h, 0)
-j_pred_h = - j_304SS_lin(minres_h.params, hcl_df['potential_V'])
-ax.scatter(hcl_df['potential_V'], np.abs(hcl_df['j_A/mm2']), s=0.5)
-ax.scatter(hcl_df['potential_V'], np.abs(j_pred_h), s=0.5)
-ax.scatter(hcl_df['potential_V'], np.abs(hcl_df['j_A/mm2'] - j_pred_h), s=0.5)
+phi_hcl = hcl_df['potential_V'].values
+idx_hcl = hcl_df.index.values
+j_hcl = hcl_df['j_A/mm2'].values
 
-ax.set_yscale('log')
+ax[0].scatter(phi_hcl, np.abs(j_hcl), s=0.5, c='k')
+ax[1].scatter(idx_hcl, np.abs(j_hcl), s=0.5, c='k')
+
+# fit everything mostly manually with assistance from lmfit using the deconvolve function:
+
+sl_h = np.s_[:700]
+params_h = deconvolve(phi_hcl[sl_h], j_hcl[sl_h], -0.4, -1e-9, -1e2, 5e2, fit=True)
+j_h = predict_j(params_h, phi_hcl[sl_h])
+j_h_dcv = predict_j(params_h, phi_hcl)
+j_hcl = j_hcl - j_h_dcv
+ax[0].scatter(phi_hcl[sl_h], np.abs(j_h), s=1)
+ax[1].scatter(idx_hcl[sl_h], np.abs(j_h), s=1)
+
+sl_pass = np.r_[770:1025, 1275:1450]
+sl_pass_2 = np.r_[780:1450]
+params_pass = deconvolve(phi_hcl[sl_pass], j_hcl[sl_pass], -0.4, 1e-8, 1e2, 1e3, 
+        phi_pass=-0.20, alpha_pass=1000, rho_pass=7e3, fit=True)
+j_pass = predict_j(params_pass, phi_hcl[sl_pass_2])
+j_pass_dcv = predict_j(params_pass, phi_hcl)
+j_hcl = j_hcl - j_pass_dcv
+ax[0].scatter(phi_hcl[sl_pass_2], np.abs(j_pass), s=1)
+ax[1].scatter(idx_hcl[sl_pass_2], np.abs(j_pass), s=1)
+
+sl_cl = np.r_[1500:1650]
+params_cl = deconvolve(phi_hcl[sl_cl], j_hcl[sl_cl], 0.4, 1e-4, 1e1, 1e1, fit=True)
+j_cl = predict_j(params_cl, phi_hcl[sl_cl])
+j_cl_dcv = predict_j(params_cl, phi_hcl)
+j_hcl = j_hcl - j_cl_dcv
+ax[0].scatter(phi_hcl[sl_cl], np.abs(j_cl), s=1)
+ax[1].scatter(idx_hcl[sl_cl], np.abs(j_cl), s=1)
+
+params_fe = params_pass
+params_fe['log10_rho_pass'].set(value=np.finfo(np.float).minexp)
+j_fe_dcv = predict_j(params_fe, phi_hcl)
+
+# show diagnostic plots:
+
+j_dcv = j_h_dcv + j_pass_dcv + j_cl_dcv
+j_dcv_pit = j_h_dcv + j_fe_dcv
+
+#ax[0].scatter(phi_hcl, np.abs(j_dcv), s=0.5, c=(j_dcv>0), cmap='viridis')
+#ax[1].scatter(idx_hcl, np.abs(j_dcv), s=0.5, c=(j_dcv>0), cmap='viridis')
+
+ax[0].plot(phi_hcl, np.abs(j_dcv))
+ax[1].plot(idx_hcl, np.abs(j_dcv))
+
+ax[0].plot(phi_hcl, np.abs(j_dcv_pit))
+ax[1].plot(idx_hcl, np.abs(j_dcv_pit))
+
 plt.show()
 
-'''
-
-# identify indices to apply local linear fits:
-hcl_fit_idxes = [50, 660, 800, 900, 1065, 1170, 1400, 1620, 1950, 2260]
-hcl_lin_minreses = []
-hcl_lin_masked_dfs = []
-
-# actually apply local linear fits:
-
-for fit_idx in hcl_fit_idxes:
-    minres, masked_df = j_304SS_fit_linear(hcl_df, fit_idx, 0)
-    hcl_lin_minreses.append(minres)
-    hcl_lin_masked_dfs.append(masked_df)
-
-# perform interpolation operations:
-
-hcl_mix_minreses = []
-
-for n in range(len(hcl_lin_minreses) - 1):
-    params_a = hcl_lin_minreses[n].params
-    params_b = hcl_lin_minreses[n+1].params
-    mdf_a = hcl_lin_masked_dfs[n]
-    mdf_b = hcl_lin_masked_dfs[n+1]
-    phi_min = mdf_a['potential_V'].min()
-    phi_max = mdf_a['potential_V'].max()
-    mix_mask = np.logical_and(hcl_df['potential_V'] > phi_min, hcl_df['potential_V'] < phi_max)
-    mix_df = hcl_df[mix_mask]
-    phi = mix_df['potential_V']
-    j = mix_df['j_A/mm2']
-    j_pred_a = j_304SS_lin(params_a, phi)
-    j_pred_b = j_304SS_lin(params_b, phi)
-
-
-for i in range(len(hcl_lin_minreses)):
-    minres_i = hcl_lin_minreses[i]
-    mdf_i = hcl_lin_masked_dfs[i]
-    phi_i = mdf_i['potential_V']
-    ax.plot(phi_i, j_304SS_lin(minres_i.params, phi_i))
-
-ax.set_yscale('log')
-#ax.legend()
-plt.show()
-'''
