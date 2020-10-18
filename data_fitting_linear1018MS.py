@@ -26,7 +26,7 @@ from lmfit import minimize, Parameters, fit_report
 # read in raw data in designated scan order:
 
 sep = '\t'
-names = ['potential_V', 'current_mA']
+names = ['potential_V', 'current_A']
 filenames = [
 './Data/1018MS 1M H2SO4 Cathodic Anodic',
 './Data/1018MS 1M H2SO4 LPR',
@@ -75,12 +75,12 @@ for n in range(len(dfs_raw)):
     df_raw = dfs_raw[n]
     df = df_raw.copy()
     for idx in remove_idxes[n]:
-        df['current_mA'].iloc[idx] = np.nan
+        df['current_A'].iloc[idx] = np.nan
     if n == 11:
-        df['current_mA'].iloc[1533:1551] = 10 * df['current_mA'].iloc[1533:1551]
+        df['current_A'].iloc[1533:1551] = 10 * df['current_A'].iloc[1533:1551]
     area_mm = (np.pi * diameter * immersion[n]) + (np.pi * diameter**2 / 4)
-    df['j_mA/mm2'] = df['current_mA'] / area_mm
-    df['abs_j_mA/mm2'] = np.abs(df['j_mA/mm2'])
+    df['j_A/mm2'] = df['current_A'] / area_mm
+    df['abs_j_A/mm2'] = np.abs(df['j_A/mm2'])
     df['progress'] = np.linspace(0, 1, df.shape[0])
     df.dropna(inplace=True)
     dfs.append(df)
@@ -109,25 +109,29 @@ def fit_1018MS(df):
     df1 = df.iloc[:split_pt, :]
     df2 = df.iloc[split_pt:, :]
 
-    zerocross1 = np.nonzero(np.diff(np.sign(df1['j_mA/mm2'].values)))[0]
-    zerocross2 = np.nonzero(np.diff(np.sign(df2['j_mA/mm2'].values)))[0]
-    phi_corr_est1 = df1['potential_V'].iloc[zerocross1].values
-    phi_corr_est2 = df2['potential_V'].iloc[zerocross2].values
+    zerocross1 = np.nonzero(np.diff(np.sign(df1['j_A/mm2'].values)))[0]
+    zerocross2 = np.nonzero(np.diff(np.sign(df2['j_A/mm2'].values)))[0]
+    phi_corr_est1 = df1['potential_V'].iloc[zerocross1].values[0]
+    phi_corr_est2 = df2['potential_V'].iloc[zerocross2].values[0]
     df1 = df1[np.abs(df1['potential_V'] - phi_corr_est1) < 20e-3]
     df2 = df2[np.abs(df2['potential_V'] - phi_corr_est2) < 20e-3]
     
-    params = Parameters()
-    params.add('j0', value=1e-6, vary=True)
-    params.add('phi_corr', value=-0.5, vary=True)
+    params1 = Parameters()
+    params1.add('j0', value=1e-6, vary=True)
+    params1.add('phi_corr', value=phi_corr_est1, vary=False)
+
+    params2 = Parameters()
+    params2.add('j0', value=1e-6, vary=True)
+    params2.add('phi_corr', value=phi_corr_est2, vary=False)
 
     phi1 = df1['potential_V'].values
     phi2 = df2['potential_V'].values
-    j1 = df1['j_mA/mm2'].values
-    j2 = df2['j_mA/mm2'].values
+    j1 = df1['j_A/mm2'].values
+    j2 = df2['j_A/mm2'].values
 
     method = 'leastsq'
-    minres1 = minimize(j_1018MS_lin_resid, params, args=(phi1, j1), method=method)
-    minres2 = minimize(j_1018MS_lin_resid, params, args=(phi2, j2), method=method)
+    minres1 = minimize(j_1018MS_lin_resid, params1, args=(phi1, j1), method=method)
+    minres2 = minimize(j_1018MS_lin_resid, params2, args=(phi2, j2), method=method)
     params1 = minres1.params
     params2 = minres2.params
     
@@ -153,8 +157,8 @@ for n in range(8):
     phi_corr_var = ndata * phi_corr_se**2
     params_df.loc[(n, 'up')] = [j0, phi_corr, j0_var, phi_corr_var, C, ndata]
 
-    params_d = minres_u.params
-    ndata = minres_u.ndata
+    params_d = minres_d.params
+    ndata = minres_d.ndata
     j0 = params_d['j0'].value
     phi_corr = params_d['phi_corr'].value
     j0_se = params_d['j0'].stderr
@@ -172,12 +176,13 @@ for n in range(8):
     '''
     fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.plot(df1['potential_V'], j_1018MS_lin(params_u, df1['potential_V']), label=f'Scan {n}u')
-    ax.scatter(df1['potential_V'], df1['j_mA/mm2'], s=1)
+    ax.scatter(df1['potential_V'], df1['j_A/mm2'], s=1)
     ax.plot(df2['potential_V'], j_1018MS_lin(params_d, df2['potential_V']), label=f'Scan {n}d')
-    ax.scatter(df2['potential_V'], df2['j_mA/mm2'], s=1)
+    ax.scatter(df2['potential_V'], df2['j_A/mm2'], s=1)
     ax.legend()
     plt.show()
     '''
 
 params_df.to_csv('./Processed Data/linear1018MS_fit_params.csv')
 print('\t[linear1018MS] Fitting parameters written to file.')
+print(params_df)

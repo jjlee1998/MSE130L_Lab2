@@ -26,7 +26,7 @@ from lmfit import minimize, Parameters, fit_report
 # read in raw data in designated scan order:
 
 sep = '\t'
-names = ['potential_V', 'current_mA']
+names = ['potential_V', 'current_A']
 filenames = [
 './Data/1018MS 1M H2SO4 Cathodic Anodic',
 './Data/1018MS 1M H2SO4 LPR',
@@ -75,12 +75,12 @@ for n in range(len(dfs_raw)):
     df_raw = dfs_raw[n]
     df = df_raw.copy()
     for idx in remove_idxes[n]:
-        df['current_mA'].iloc[idx] = np.nan
+        df['current_A'].iloc[idx] = np.nan
     if n == 11:
-        df['current_mA'].iloc[1533:1551] = 10 * df['current_mA'].iloc[1533:1551]
+        df['current_A'].iloc[1533:1551] = 10 * df['current_A'].iloc[1533:1551]
     area_mm = (np.pi * diameter * immersion[n]) + (np.pi * diameter**2 / 4)
-    df['j_mA/mm2'] = df['current_mA'] / area_mm
-    df['abs_j_mA/mm2'] = np.abs(df['j_mA/mm2'])
+    df['j_A/mm2'] = df['current_A'] / area_mm
+    df['abs_j_A/mm2'] = np.abs(df['j_A/mm2'])
     df['progress'] = np.linspace(0, 1, df.shape[0])
     df.dropna(inplace=True)
     dfs.append(df)
@@ -132,8 +132,8 @@ def fit_1018MS(df):
 
     phi1 = df1['potential_V'].values
     phi2 = df2['potential_V'].values
-    j1 = df1['j_mA/mm2'].values
-    j2 = df2['j_mA/mm2'].values
+    j1 = df1['j_A/mm2'].values
+    j2 = df2['j_A/mm2'].values
 
     params1 = minimize(j_1018MS_resid, params, args=(phi1, j1), method='basinhopping').params
     params2 = minimize(j_1018MS_resid, params, args=(phi2, j2), method='basinhopping').params
@@ -210,16 +210,18 @@ for n in range(8):
     print(f'\t[nonlinear1018MS] Scan {n} fit complete and clean data written to file.')
 
     # uncomment these lines to inspect as we go:
-    '''
+    #'''
     fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.plot(df1['potential_V'], np.abs(j_1018MS(params_u, df1['potential_V'])), label=f'Scan {n}u')
-    ax.scatter(df1['potential_V'], np.abs(df1['j_mA/mm2']), s=1)
+    ax.scatter(df1['potential_V'], np.abs(df1['j_A/mm2']), s=1)
     ax.plot(df2['potential_V'], np.abs(j_1018MS(params_d, df2['potential_V'])), label=f'Scan {n}d')
-    ax.scatter(df2['potential_V'], np.abs(df2['j_mA/mm2']), s=1)
+    ax.scatter(df2['potential_V'], np.abs(df2['j_A/mm2']), s=1)
     ax.legend()
     ax.set_yscale('log')
+    params_u.pretty_print()
+    params_d.pretty_print()
     plt.show()
-    '''
+    #'''
 
 params_df.to_csv('./Processed Data/nonlinear1018MS_fit_params.csv')
 print('\t[nonlinear1018MS] Fitting parameters written to file.')

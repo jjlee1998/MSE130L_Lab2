@@ -12,7 +12,8 @@
 \usepackage{amsmath}
 \usepackage{siunitx}
 \usepackage[]{graphicx}
-\graphicspath{{./images/}}
+\graphicspath{{./resources/}}
+\usepackage{booktabs}
 %\usepackage{hyperref}
 
 % set up bibliography:
@@ -56,11 +57,16 @@
 
 \section{Introduction}
 
-\input{introduction}
+% \input{introduction}
 
 \section{Experimental Procedure}
 
-\input{experimental_procedure}
+% \input{experimental_procedure}
+
+\begin{table}[h!]
+	\centering
+	\input{resources/table_2b_anocat_values.tex}
+\end{table}
 
 \section{Results}
 

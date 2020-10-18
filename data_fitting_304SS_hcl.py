@@ -82,7 +82,7 @@ for n in range(len(dfs_raw)):
         df['current_A'].iloc[1533:1551] = 10 * df['current_A'].iloc[1533:1551]
     area_mm = (np.pi * diameter * immersion[n]) + (np.pi * diameter**2 / 4)
     df['j_A/mm2'] = df['current_A'] / area_mm
-    df['abs_j_mA/mm2'] = np.abs(df['j_A/mm2'])
+    df['abs_j_A/mm2'] = np.abs(df['j_A/mm2'])
     df['progress'] = np.linspace(0, 1, df.shape[0])
     df.dropna(inplace=True)
     dfs.append(df)
