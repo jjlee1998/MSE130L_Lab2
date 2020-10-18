@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Arch Linux) (preloaded format=pdflatex 2020.10.11)  18 OCT 2020 01:48
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020/Arch Linux) (preloaded format=pdflatex 2020.10.11)  18 OCT 2020 03:54
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -665,15 +665,39 @@ Package biblatex Info: Reference segment=0 on input line 44.
 {/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}] (./writeup.toc)
 \tf@toc=\write4
  [2]
-(./resources/table_2b_anocat_values.tex) (./results.tex) (./discussion.tex)
-[3] (./writeup.aux)
+(./resources/table_2b_anocat_values.tex) (./resources/table_2c_lpr_full.tex)
+Overfull \hbox (18.28651pt too wide) in paragraph at lines 1--74
+ [][] 
+ []
+
+(./resources/table_2a1.tex)
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+(./resources/table_2a1_barriers.tex)
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+(./resources/table_2a2.tex)
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+(./resources/table_2a2_barriers.tex)
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+(./results.tex) (./discussion.tex) [3]
+Overfull \vbox (7.70575pt too high) has occurred while \output is active []
+
+
+[4] (./writeup.aux)
 Package logreq Info: Writing requests to 'writeup.run.xml'.
  ) 
 Here is how much of TeX's memory you used:
- 13042 strings out of 480478
- 258946 string characters out of 5905958
- 707704 words of memory out of 5000000
- 28921 multiletter control sequences out of 15000+600000
+ 13062 strings out of 480478
+ 259450 string characters out of 5905958
+ 718704 words of memory out of 5000000
+ 28926 multiletter control sequences out of 15000+600000
  541153 words of font info for 57 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  40i,9n,46p,826b,743s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -681,11 +705,13 @@ Here is how much of TeX's memory you used:
 texmf-dist/fonts/type1/public/amsfonts/cm/cmmi12.pfb></usr/share/texmf-dist/fon
 ts/type1/public/amsfonts/cm/cmmi8.pfb></usr/share/texmf-dist/fonts/type1/public
 /amsfonts/cm/cmr12.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cm
-r17.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb>
-Output written on writeup.pdf (3 pages, 69237 bytes).
+r17.pfb></usr/share/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></usr/sh
+are/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-dist
+/fonts/type1/public/amsfonts/cm/cmsy8.pfb>
+Output written on writeup.pdf (4 pages, 88620 bytes).
 PDF statistics:
- 38 PDF objects out of 1000 (max. 8388607)
- 26 compressed objects within 1 object stream
+ 49 PDF objects out of 1000 (max. 8388607)
+ 34 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  1 words of extra memory for PDF output out of 10000 (max. 10000000)
 

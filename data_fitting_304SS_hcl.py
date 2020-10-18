@@ -4,6 +4,7 @@ import pandas as pd
 from scipy.special import erf, lambertw
 from lmfit import minimize, Parameters, fit_report
 from deconvolve import deconvolve, predict_j, params_to_dfs
+from copy import deepcopy
 
 # Scan 0: 1018MS H2SO4 Anodic/Cathodic 1 mA ('./Data/1018MS 1M H2SO4 Cathodic Anodic')
 # Scan 1: 1018MS H2SO4 LPR 1 mA ('./Data/1018MS 1M H2SO4 LPR')
@@ -154,8 +155,8 @@ ax[0].scatter(phi_hcl[sl_cl], np.abs(j_cl), s=1)
 ax[1].scatter(idx_hcl[sl_cl], np.abs(j_cl), s=1)
 print('\t[304SS_hcl] Chloride pitting deconvolved.')
 
-params_fe = params_pass
-minres_fe = minres_pass
+params_fe = deepcopy(params_pass)
+minres_fe = deepcopy(minres_pass)
 params_fe['log10_rho_pass'].set(value=np.finfo(np.float).minexp)
 j_fe_dcv = predict_j(params_fe, phi_hcl)
 print('\t[304SS_hcl] Iron oxidation deconvolved.')
