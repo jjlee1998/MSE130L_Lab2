@@ -16,6 +16,9 @@
 \usepackage{booktabs}
 %\usepackage{hyperref}
 
+% fix tilde:
+\newcommand{\textapprox}{\raisebox{0.5ex}{\texttildelow}}
+
 % set up bibliography:
 \usepackage[backend=bibtex, style=phys]{biblatex}
 \addbibresource{citations.bib}
@@ -57,7 +60,7 @@
 
 \section{Introduction}
 
-% \input{introduction}
+\input{introduction}
 
 \section{Experimental Procedure}
 
@@ -93,6 +96,11 @@
 	\input{resources/table_2a2_barriers.tex}
 \end{table}
 
+\begin{table}[h!]
+	\centering
+	\input{resources/table_2c_lpr_full.tex}
+\end{table}
+
 \section{Results}
 
 \input{results}
@@ -107,6 +115,7 @@
 
 % \printbibliography[heading=bibnumbered]
 
-\section{Appendices}
+\section{Appendix 1: Analysis Code}
+\section{Appendix 2: Surface Microscopy}
 
 \end{document}

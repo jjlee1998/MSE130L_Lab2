@@ -1,9 +1,14 @@
 \boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
 \contentsline {section}{\numberline {1}Abstract}{3}%
 \contentsline {section}{\numberline {2}Introduction}{3}%
-\contentsline {section}{\numberline {3}Experimental Procedure}{3}%
-\contentsline {section}{\numberline {4}Results}{4}%
-\contentsline {section}{\numberline {5}Discussion}{4}%
-\contentsline {section}{\numberline {6}Conclusions}{4}%
-\contentsline {section}{\numberline {7}Acknowledgments}{4}%
-\contentsline {section}{\numberline {8}Appendices}{4}%
+\contentsline {subsection}{\numberline {2.1}Three Models for Polarization Curve Fitting}{3}%
+\contentsline {subsection}{\numberline {2.2}Additional Behavior: 1018MS}{6}%
+\contentsline {subsection}{\numberline {2.3}Additional Behavior: 304SS}{6}%
+\contentsline {subsection}{\numberline {2.4}Charactization Targets}{7}%
+\contentsline {section}{\numberline {3}Experimental Procedure}{7}%
+\contentsline {section}{\numberline {4}Results}{9}%
+\contentsline {section}{\numberline {5}Discussion}{9}%
+\contentsline {section}{\numberline {6}Conclusions}{9}%
+\contentsline {section}{\numberline {7}Acknowledgments}{9}%
+\contentsline {section}{\numberline {8}Appendix 1: Analysis Code}{9}%
+\contentsline {section}{\numberline {9}Appendix 2: Surface Microscopy}{9}%
