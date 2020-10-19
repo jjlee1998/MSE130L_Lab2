@@ -85,11 +85,33 @@ These polarization cell experiments examined the corrosion behavior of samples o
 
 The author wishes to thank Chris Kumai of the UC Berkeley MSE department for data collection, as well as GSI Tingzheng Hou for helpful suggestions. 
 
-% \printbibliography[heading=bibnumbered]
+\printbibliography[heading=bibnumbered]
 
-\section{Appendix 1: Analysis Code}
-\section{Appendix 2: Surface Microscopy}
-\section{Appendix 3: Additional Butler-Volmer Fits}
+\section{Appendix 1: Analysis Code and Microscopy Images}
+
+Given the amount of code used to perform the calculations in this report, it is unfeasible
+to include the source files in an Appendix. Instead, the code may be accessed at \url{https://github.com/jjlee1998/MSE130L_Lab2}.  The repository also contains the microscopy images referred to throughout this report, which could not be attached here due to size and technical issues.
+
+\section{Appendix 2: Additional Butler-Volmer Fits}
+
+	\begin{table}[htp]
+		\centering
+		\input{resources/table_2b_values.tex}
+		\input{resources/table_2b_variances.tex}
+		\caption{Derived parameters and variances for Equation \ref{eqn:bv_tafel} (Tafel slopes, corrosion currents, and corrosion potentials relative to SCE) for all 1018MS anodic/cathodic sweeps.}
+		\label{table:anocat_full}
+	\end{table}
+
+\pagebreak
+
 \section{Appendix 3: Additional LPR Fits}
+
+	\begin{table}[h!]
+		\centering
+		\input{resources/table_2c_values.tex}
+		\input{resources/table_2c_variances.tex}
+		\caption{Derived parameters and variances for Equation \ref{eqn:bv_tafel} (Tafel slopes, corrosion currents, and corrosion potentials relative to SCE) for all 1018MS anodic/cathodic sweeps.}
+		\label{table:lpr_full}
+	\end{table}
 
 \end{document}
