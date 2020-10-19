@@ -403,6 +403,8 @@ print_df_2c = print_df_2c.reindex(columns=['Scan', 'Type', 'Soln', 'Rate', 'Dir'
 print_df_2c.set_index(['Scan', 'Type', 'Soln', 'Rate', 'Dir'], inplace=True)
 print_df_2c['$\sigma^2(\Delta \phi_{corr})$'] = '~0'
 
+print_df_2c.drop(columns='$\sigma^2(\Delta \phi_{corr})$', inplace=True)
+
 print_df_2c_vals = print_df_2c.iloc[:, :1]
 print_df_2c_vars = print_df_2c.iloc[:, 1:]
 

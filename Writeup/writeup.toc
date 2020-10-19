@@ -7,8 +7,13 @@
 \contentsline {subsection}{\numberline {2.4}Charactization Targets}{7}%
 \contentsline {section}{\numberline {3}Experimental Procedure}{7}%
 \contentsline {section}{\numberline {4}Results}{9}%
+\contentsline {subsection}{\numberline {4.1}1018MS Corrosion Parameters from Anodic/Cathodic Sweeps}{9}%
+\contentsline {subsection}{\numberline {4.2}1018MS Corrosion Parameters from LPR Sweeps}{9}%
+\contentsline {subsection}{\numberline {4.3}Deconvolution of 304SS Polarization Sweeps}{9}%
 \contentsline {section}{\numberline {5}Discussion}{9}%
 \contentsline {section}{\numberline {6}Conclusions}{9}%
 \contentsline {section}{\numberline {7}Acknowledgments}{9}%
 \contentsline {section}{\numberline {8}Appendix 1: Analysis Code}{9}%
-\contentsline {section}{\numberline {9}Appendix 2: Surface Microscopy}{9}%
+\contentsline {section}{\numberline {9}Appendix 2: Descriptions of Polarization Curve Parameters}{9}%
+\contentsline {section}{\numberline {10}Appendix 3: All Derived Parameters}{12}%
+\contentsline {section}{\numberline {11}Appendix 4: Surface Microscopy}{12}%
