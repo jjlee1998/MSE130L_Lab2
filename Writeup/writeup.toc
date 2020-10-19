@@ -3,17 +3,21 @@
 \contentsline {section}{\numberline {2}Introduction}{3}%
 \contentsline {subsection}{\numberline {2.1}Three Models for Polarization Curve Fitting}{3}%
 \contentsline {subsection}{\numberline {2.2}Additional Behavior: 1018MS}{6}%
-\contentsline {subsection}{\numberline {2.3}Additional Behavior: 304SS}{6}%
-\contentsline {subsection}{\numberline {2.4}Charactization Targets}{7}%
+\contentsline {subsection}{\numberline {2.3}Additional Behavior: 304SS}{7}%
 \contentsline {section}{\numberline {3}Experimental Procedure}{7}%
-\contentsline {section}{\numberline {4}Results}{9}%
-\contentsline {subsection}{\numberline {4.1}1018MS Corrosion Parameters from Anodic/Cathodic Sweeps}{9}%
-\contentsline {subsection}{\numberline {4.2}1018MS Corrosion Parameters from LPR Sweeps}{9}%
-\contentsline {subsection}{\numberline {4.3}Deconvolution of 304SS Polarization Sweeps}{9}%
-\contentsline {section}{\numberline {5}Discussion}{9}%
-\contentsline {section}{\numberline {6}Conclusions}{9}%
-\contentsline {section}{\numberline {7}Acknowledgments}{9}%
-\contentsline {section}{\numberline {8}Appendix 1: Analysis Code}{9}%
-\contentsline {section}{\numberline {9}Appendix 2: Descriptions of Polarization Curve Parameters}{9}%
-\contentsline {section}{\numberline {10}Appendix 3: All Derived Parameters}{12}%
-\contentsline {section}{\numberline {11}Appendix 4: Surface Microscopy}{12}%
+\contentsline {section}{\numberline {4}Results}{10}%
+\contentsline {subsection}{\numberline {4.1}1018MS Corrosion Parameters from Anodic/Cathodic Sweeps}{10}%
+\contentsline {subsection}{\numberline {4.2}1018MS Corrosion Parameters from LPR Sweeps}{12}%
+\contentsline {subsection}{\numberline {4.3}Deconvolution of 304SS H$_2$SO$_4$ Polarization Sweep}{13}%
+\contentsline {subsection}{\numberline {4.4}Deconvolution of 304SS HCl Polarization Sweep}{16}%
+\contentsline {section}{\numberline {5}Discussion}{17}%
+\contentsline {subsection}{\numberline {5.1}Comments Upon Fitting Procedure Validity}{17}%
+\contentsline {subsection}{\numberline {5.2}Discussion of Hysteresis in 1018MS Curves}{18}%
+\contentsline {subsection}{\numberline {5.3}Effect of Chloride Ions on 304SS Passivation Behavior}{19}%
+\contentsline {subsection}{\numberline {5.4}Anomalous Behavior Following Passivation Potential}{20}%
+\contentsline {section}{\numberline {6}Conclusions}{22}%
+\contentsline {section}{\numberline {7}Acknowledgments}{22}%
+\contentsline {section}{\numberline {8}Appendix 1: Analysis Code}{23}%
+\contentsline {section}{\numberline {9}Appendix 2: Surface Microscopy}{23}%
+\contentsline {section}{\numberline {10}Appendix 3: Additional Butler-Volmer Fits}{23}%
+\contentsline {section}{\numberline {11}Appendix 3: Additional LPR Fits}{23}%

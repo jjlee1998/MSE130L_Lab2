@@ -43,21 +43,23 @@
 \author{\normalsize Jonathan Lee \\
 	\normalsize Department of Materials Science and Engineering \\
 	\normalsize University of California, Berkeley}
-\date{\normalsize 12 October 2020}
+\date{\normalsize 18 October 2020}
 
 \begin{document}
 
 \maketitle
 
-\doublespacing
-
 \setcounter{page}{2}
 
 \tableofcontents
 
+\doublespacing
+
 \newpage
 
 \section{Abstract}
+
+A series of polarization cell experiments were conducted so as to characterize the corrosion behavior of 1018 mild steel and 304 stainless steel samples when polarized in strongly-acidic solutions, on behalf of an anonymous manufacturer.  Three models of varying complexity were employed to fit the data, including a nontraditional modification of the Butler-Volmer equation that incorporated diffusion limitations and the synthesis of passivation barriers.  It was found that for the H/Fe redox couple on 1018MS, $j_{\text{corr}} = 1.49$e-6 A/mm$^2$ and $\Delta \phi_{\text{corr}} = -0.491$ V vs. SCE.  For 304SS in 1M H$_2$SO$_4$ solution, the passivation barrier was found to form at -0.277 V and break down at 0.892 V, while in 1M HCl solution, the barrier formed at -0.157 V and broke down at 0.402 V due to chloride pitting.
 
 \section{Introduction}
 
@@ -66,8 +68,6 @@
 \section{Experimental Procedure}
 
 \input{experimental_procedure}
-
-
 
 \section{Results}
 
@@ -79,17 +79,17 @@
 
 \section{Conclusions}
 
+These polarization cell experiments examined the corrosion behavior of samples of 1018MS and 304SS submitted by an anonymous manufacturer for quality control purposes.  Three models were employed to fit the data: a classic Butler-Volmer model; a low-overpotential linear limit of the Bulter-Volmer equation; and a heavily-modified single-component model that employed the Lambert W function and JMAK kinetics in order to model diffusion limitations and passivation effects.  The first model yielded $j_{\text{corr}} = 1.88$e-6 A/mm$^2$, $\Delta \phi_{\text{corr}} = -0.4903$ V, $A_{\text{H}} = -8.620e-2$ V, and $A_{\text{Fe}} = 8.606e-2$ V, though these values were marred by large variances.  The LPR-derived values of $j_{\text{corr}} = 1.49$e-6 A/mm$^2$, $\Delta \phi_{\text{corr}} = -0.491$ V were found to be more reliable.  An inspection of the 304SS polarization curves yielded a maximum active corrosion rate of 2.15e-6 A/mm$^2$ at $\Delta \phi_{\text{pass}} = -0.277$ V for H$_2$SO$_4$ and 8.43e-4 A/mm$^2$ at $\Delta \phi_{\text{pass}} = -0.157$ V for HCl, while the passivation barrier broke down at the Cr III/Cr VI corrosion potential (0.892 V) in H$_2$SO$_4$ and the Cl$^-$ pitting potential (0.402 V) in HCl.  This analysis should provide the manufacturer a basic understanding of their steel alloys in terms of these parameters, as well as provide areas of inquiry for the manufacturer to improve their understanding with future investigations.
+
 \section{Acknowledgments}
+
+The author wishes to thank Chris Kumai of the UC Berkeley MSE department for data collection, as well as GSI Tingzheng Hou for helpful suggestions. 
 
 % \printbibliography[heading=bibnumbered]
 
 \section{Appendix 1: Analysis Code}
-\section{Appendix 2: Descriptions of Polarization Curve Parameters}
-
-\input{appendix_2.tex}
-
-\section{Appendix 3: All Derived Parameters}
-
-\section{Appendix 4: Surface Microscopy}
+\section{Appendix 2: Surface Microscopy}
+\section{Appendix 3: Additional Butler-Volmer Fits}
+\section{Appendix 3: Additional LPR Fits}
 
 \end{document}

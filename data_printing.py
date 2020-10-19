@@ -17,7 +17,7 @@ mpl.rc('axes', titlesize=size)
 mpl.rc('axes', labelsize=size)
 mpl.rc('xtick', labelsize=size)
 mpl.rc('ytick', labelsize=size)
-mpl.rc('legend', fontsize=int(size/2))
+mpl.rc('legend', fontsize=int(size/1.5))
 
 # import all the data
 
@@ -156,22 +156,23 @@ ax_2a1[0].plot(phi_h2so4, np.abs(j_h2so4_asc), label='Reconstructed Ascending Po
 ax_2a1[0].plot(phi_h2so4[h2so4_split_idx:], np.abs(j_h2so4_dec[h2so4_split_idx:]), label='Reconstructed Descending Polarization')
 ax_2a1[0].legend()
 ax_2a1[1].legend()
-
+sl_2a1 = np.diff(np.sign(j_h2so4_dec)) != 0
+print(phi_h2so4[:-1][sl_2a1])
 #plt.show()
-plt.savefig(fname='Writeup/resources/fig_2a1.png', format='png', dpi=100)
+plt.savefig(fname='Writeup/resources/fig_2a1.png', format='png', dpi=300)
 plt.close(fig_2a1)
 
 
 print_df_2a1 = params_df_304SS_h2so4.copy()
 print_df_2a1.reset_index(inplace=True)
 print_df_2a1['a0'] = np.log(10) / print_df_2a1['a0']
-print_df_2a1.columns=['Reaction',  r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{lim}$ ($\Omega \cdot$mm)',
-        r'$\phi_{pass}$ (V)', r'$\alpha_{pass}$ (V$^{-3}$)', r'$\rho_{pass}$ ($\Omega \cdot$mm)']
+print_df_2a1.columns=['Reaction',  r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{\text{lim}}$ ($\Omega \cdot$mm)',
+        r'$\phi_{\text{pass}}$ (V)', r'$\alpha_{\text{pass}}$ (V$^{-3}$)', r'$\rho_{\text{pass}}$ ($\Omega \cdot$mm)']
 print_df_2a1['Reaction'] = print_df_2a1['Reaction'].replace(h2so4_rxn_keys)
 print_df_2a1.set_index(['Reaction'], inplace=True)
-print_df_2a1_barriers = print_df_2a1[print_df_2a1[r'$\alpha_{pass}$ (V$^{-3}$)'] != 0].copy()
-print_df_2a1.drop(columns=[r'$\phi_{pass}$ (V)', r'$\alpha_{pass}$ (V$^{-3}$)', r'$\rho_{pass}$ ($\Omega \cdot$mm)'], inplace=True)
-print_df_2a1_barriers.drop(columns=[r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{lim}$ ($\Omega \cdot$mm)'], inplace=True)
+print_df_2a1_barriers = print_df_2a1[print_df_2a1[r'$\alpha_{\text{pass}}$ (V$^{-3}$)'] != 0].copy()
+print_df_2a1.drop(columns=[r'$\phi_{\text{pass}}$ (V)', r'$\alpha_{\text{pass}}$ (V$^{-3}$)', r'$\rho_{\text{pass}}$ ($\Omega \cdot$mm)'], inplace=True)
+print_df_2a1_barriers.drop(columns=[r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{\text{lim}}$ ($\Omega \cdot$mm)'], inplace=True)
 
 print_df_2a1.to_latex(buf='Writeup/resources/table_2a1.tex', float_format='%.3e', escape=False)
 print_df_2a1_barriers.to_latex(buf='Writeup/resources/table_2a1_barriers.tex', float_format='%.3e', escape=False)
@@ -224,7 +225,7 @@ ax_2a2[0].legend()
 ax_2a2[1].legend()
 
 #plt.show()
-plt.savefig(fname='Writeup/resources/fig_2a2.png', format='png', dpi=100)
+plt.savefig(fname='Writeup/resources/fig_2a2.png', format='png', dpi=300)
 plt.close(fig_2a2)
 
 
@@ -232,13 +233,13 @@ plt.close(fig_2a2)
 print_df_2a2 = params_df_304SS_hcl.copy()
 print_df_2a2.reset_index(inplace=True)
 print_df_2a2['a0'] = np.log(10) / print_df_2a2['a0']
-print_df_2a2.columns=['Reaction',  r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{lim}$ ($\Omega \cdot$mm)',
-        r'$\phi_{pass}$ (V)', r'$\alpha_{pass}$ (V$^{-3}$)', r'$\rho_{pass}$ ($\Omega \cdot$mm)']
+print_df_2a2.columns=['Reaction',  r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{\text{lim}}$ ($\Omega \cdot$mm)',
+        r'$\phi_{\text{pass}}$ (V)', r'$\alpha_{\text{pass}}$ (V$^{-3}$)', r'$\rho_{\text{pass}}$ ($\Omega \cdot$mm)']
 print_df_2a2['Reaction'] = print_df_2a2['Reaction'].replace(hcl_rxn_keys)
 print_df_2a2.set_index(['Reaction'], inplace=True)
-print_df_2a2_barriers = print_df_2a2[print_df_2a2[r'$\rho_{pass}$ ($\Omega \cdot$mm)'] != 0].copy()
-print_df_2a2.drop(columns=[r'$\phi_{pass}$ (V)', r'$\alpha_{pass}$ (V$^{-3}$)', r'$\rho_{pass}$ ($\Omega \cdot$mm)'], inplace=True)
-print_df_2a2_barriers.drop(columns=[r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{lim}$ ($\Omega \cdot$mm)'], inplace=True)
+print_df_2a2_barriers = print_df_2a2[print_df_2a2[r'$\rho_{\text{pass}}$ ($\Omega \cdot$mm)'] != 0].copy()
+print_df_2a2.drop(columns=[r'$\phi_{\text{pass}}$ (V)', r'$\alpha_{\text{pass}}$ (V$^{-3}$)', r'$\rho_{\text{pass}}$ ($\Omega \cdot$mm)'], inplace=True)
+print_df_2a2_barriers.drop(columns=[r'$\phi_0$ (V)', r'$j_0$ (A/mm$^2$)', r'$A$ (V)', r'$\rho_{\text{lim}}$ ($\Omega \cdot$mm)'], inplace=True)
 
 print_df_2a2.to_latex(buf='Writeup/resources/table_2a2.tex', float_format='%.3e', escape=False)
 print_df_2a2_barriers.to_latex(buf='Writeup/resources/table_2a2_barriers.tex', float_format='%.3e', escape=False)
@@ -260,14 +261,14 @@ fig_2b, axes_2b = plt.subplots(nrows=4, ncols=2, sharex=False, sharey=True)
 fig_2b.set_size_inches(6, 7)
 ax_2b = axes_2b.ravel()
 labels_2b = {
-        0:r'$H_2SO_4$ Anodic/Cathodic 1 mV/sec',
+        0:r'$H_2SO_4$ Anodic/Cathodic 10 mV/sec',
         1:r'$H_2SO_4$ LPR 1 mV/sec',
         2:r'$H_2SO_4$ Anodic/Cathodic 10 mV/sec',
-        3:r'$H_2SO_4$ LPR 10 mV/sec',
-        4:r'$HCl$ Anodic/Cathodic 1 mV/sec',
+        3:r'$H_2SO_4$ LPR 1 mV/sec',
+        4:r'$HCl$ Anodic/Cathodic 10 mV/sec',
         5:r'$HCl$ LPR 1 mV/sec',
         6:r'$HCl$ Anodic/Cathodic 10 mV/sec',
-        7:r'$HCl$ LPR 10 mV/sec',
+        7:r'$HCl$ LPR 1 mV/sec',
         }
 
 for n in range(8):
@@ -293,7 +294,7 @@ for n in range(8):
     ax_2b[n].set_xlabel(r'Potential ($\phi$) vs. SCE')
     ax_2b[n].set_ylabel(r'|j| (A/mm$^2$)')
 
-plt.savefig(fname='Writeup/resources/fig_2b.png', format='png', dpi=100)
+plt.savefig(fname='Writeup/resources/fig_2b.png', format='png', dpi=300)
 plt.close(fig_2b)
 
 
@@ -304,16 +305,20 @@ print_df_2b['a1_var'] = np.log(10)**2 / print_df_2b['a1_var']**4
 print_df_2b['a2_var'] = np.log(10)**2 / print_df_2b['a2_var']**4
 print_df_2b['a1'] = np.log(10) / print_df_2b['a1']
 print_df_2b['a2'] = np.log(10) / print_df_2b['a2']
-print_df_2b.columns=['Scan', 'Dir', '$A_H$ (V)', '$A_{Fe}$ (V)', '$j_{corr}$ (A/mm$^2$)', '$\Delta \phi_{corr}$ (V)',
-        '$\sigma^2(A_H)$', '$\sigma^2(A_{Fe})$', '$\sigma^2(j_{corr})$', '$\sigma^2(\Delta \phi_{corr})$', 'n']
+print_df_2b.columns=['Scan', 'Dir', '$A_{\text{H}}$ (V)', '$A_{\text{Fe}}$ (V)', '$j_{\text{corr}}$ (A/mm$^2$)', '$\Delta \phi_{\text{corr}}$ (V)',
+        '$\sigma^2(A_{\text{H}})$', '$\sigma^2(A_{\text{Fe}})$', '$\sigma^2(j_{\text{corr}})$', '$\sigma^2(\Delta \phi_{\text{corr}})$', 'n']
 print_df_2b['Rate'] = print_df_2b['Scan'].replace({
-    0: '1 mV/sec', 1: '1 mV/sec', 2: '10 mV/sec', 3: '10 mV/sec', 4: '1 mV/sec', 5: '1 mV/sec', 6: '10 mV/sec', 7: '10 mV/sec', })
+    0: '10 mV/sec', 1: '1 mV/sec', 2: '10 mV/sec', 3: '1 mV/sec', 4: '10 mV/sec', 5: '1 mV/sec', 6: '10 mV/sec', 7: '1 mV/sec', })
 print_df_2b['Type'] = np.where(print_df_2b['Scan']%2==0, 'Ano/Cat', 'LPR')
 print_df_2b['Soln'] = np.where(np.arange(16)<8, 'H$_2$SO$_4$', 'HCl')
 print_df_2b['Dir'].replace({'up':'Asc', 'down':'Des'}, inplace=True)
-print_df_2b = print_df_2b.reindex(columns=['Scan', 'Type', 'Soln', 'Rate', 'Dir', '$A_H$ (V)', '$A_{Fe}$ (V)', '$j_{corr}$ (A/mm$^2$)', '$\Delta \phi_{corr}$ (V)',
-        '$\sigma^2(A_H)$', '$\sigma^2(A_{Fe})$', '$\sigma^2(j_{corr})$', '$\sigma^2(\Delta \phi_{corr})$', 'n'])
-print_df_2b.set_index(['Scan', 'Type', 'Soln', 'Rate', 'Dir'], inplace=True)
+print_df_2b = print_df_2b.reindex(columns=['Scan', 'Type', 'Soln', 'Rate', 'Dir', '$A_{\text{H}}$ (V)', '$A_{\text{Fe}}$ (V)', '$j_{\text{corr}}$ (A/mm$^2$)', '$\Delta \phi_{\text{corr}}$ (V)',
+        '$\sigma^2(A_{\text{H}})$', '$\sigma^2(A_{\text{Fe}})$', '$\sigma^2(j_{\text{corr}})$', '$\sigma^2(\Delta \phi_{\text{corr}})$', 'n'])
+#print_df_2b.set_index(['Scan', 'Type', 'Soln', 'Rate', 'Dir'], inplace=True)
+print_df_2b.drop(columns='Rate', inplace=True)
+print_df_2b.set_index(['Scan', 'Type', 'Soln', 'Dir'], inplace=True)
+
+print_df_2b['$A_{\text{H}}$ (V)'] = - print_df_2b['$A_{\text{H}}$ (V)']
 
 print_df_2b_vals = print_df_2b.iloc[:, :4]
 print_df_2b_vars = print_df_2b.iloc[:, 4:]
@@ -353,14 +358,14 @@ fig_2c, axes_2c = plt.subplots(nrows=4, ncols=2, sharex=False, sharey=True)
 fig_2c.set_size_inches(6, 7)
 ax_2c = axes_2c.ravel()
 labels_2c = {
-        0:r'$H_2SO_4$ Anodic/Cathodic 1 mV/sec',
+        0:r'$H_2SO_4$ Anodic/Cathodic 10 mV/sec',
         1:r'$H_2SO_4$ LPR 1 mV/sec',
         2:r'$H_2SO_4$ Anodic/Cathodic 10 mV/sec',
-        3:r'$H_2SO_4$ LPR 10 mV/sec',
-        4:r'$HCl$ Anodic/Cathodic 1 mV/sec',
+        3:r'$H_2SO_4$ LPR 1 mV/sec',
+        4:r'$HCl$ Anodic/Cathodic 10 mV/sec',
         5:r'$HCl$ LPR 1 mV/sec',
         6:r'$HCl$ Anodic/Cathodic 10 mV/sec',
-        7:r'$HCl$ LPR 10 mV/sec',
+        7:r'$HCl$ LPR 1 mV/sec',
         }
 
 for n in range(8):
@@ -383,27 +388,29 @@ for n in range(8):
     ax_2c[n].plot(phi_d, j_d, c='C3', label=labels_2c[n]+' (Descending Sweep)')
     ax_2c[n].legend()
     ax_2c[n].set_xlabel(r'Potential ($\phi$) vs. SCE')
-    ax_2c[n].set_ylabel(r'|j| (A/mm$^2$)')
+    ax_2c[n].set_ylabel(r'j (A/mm$^2$)')
 
-plt.savefig(fname='Writeup/resources/fig_2c.png', format='png', dpi=100)
+plt.savefig(fname='Writeup/resources/fig_2c.png', format='png', dpi=300)
 plt.close(fig_2c)
 
 print_df_2c = params_df_1018MS_lpr.copy()
 print_df_2c.reset_index(inplace=True)
-print_df_2c.columns=['Scan', 'Dir', '$j_{corr}$ (A/mm$^2$)', '$\Delta \phi_{corr}$ (V)',
-        '$\sigma^2(j_{corr})$', '$\sigma^2(\Delta \phi_{corr})$', 'C', 'n']
+print_df_2c.columns=['Scan', 'Dir', '$j_{\text{corr}}$ (A/mm$^2$)', '$\Delta \phi_{\text{corr}}$ (V)',
+        '$\sigma^2(j_{\text{corr}})$', '$\sigma^2(\Delta \phi_{\text{corr}})$', 'C', 'n']
 print_df_2c.drop(columns='C', inplace=True)
 print_df_2c['Rate'] = print_df_2c['Scan'].replace({
-    0: '1 mV/sec', 1: '1 mV/sec', 2: '10 mV/sec', 3: '10 mV/sec', 4: '1 mV/sec', 5: '1 mV/sec', 6: '10 mV/sec', 7: '10 mV/sec', })
+    0: '10 mV/sec', 1: '1 mV/sec', 2: '10 mV/sec', 3: '1 mV/sec', 4: '10 mV/sec', 5: '1 mV/sec', 6: '10 mV/sec', 7: '1 mV/sec', })
 print_df_2c['Type'] = np.where(print_df_2c['Scan']%2==0, 'Ano/Cat', 'LPR')
 print_df_2c['Soln'] = np.where(np.arange(16)<8, 'H$_2$SO$_4$', 'HCl')
 print_df_2c['Dir'].replace({'up':'Asc', 'down':'Des'}, inplace=True)
-print_df_2c = print_df_2c.reindex(columns=['Scan', 'Type', 'Soln', 'Rate', 'Dir', '$j_{corr}$ (A/mm$^2$)', '$\Delta \phi_{corr}$ (V)',
-        '$\sigma^2(j_{corr})$', '$\sigma^2(\Delta \phi_{corr})$', 'n'])
-print_df_2c.set_index(['Scan', 'Type', 'Soln', 'Rate', 'Dir'], inplace=True)
-print_df_2c['$\sigma^2(\Delta \phi_{corr})$'] = '~0'
+print_df_2c = print_df_2c.reindex(columns=['Scan', 'Type', 'Soln', 'Rate', 'Dir', '$j_{\text{corr}}$ (A/mm$^2$)', '$\Delta \phi_{\text{corr}}$ (V)',
+        '$\sigma^2(j_{\text{corr}})$', '$\sigma^2(\Delta \phi_{\text{corr}})$', 'n'])
+#print_df_2c.set_index(['Scan', 'Type', 'Soln', 'Rate', 'Dir'], inplace=True)
+print_df_2c.drop(columns='Rate', inplace=True)
+print_df_2c.set_index(['Scan', 'Type', 'Soln', 'Dir'], inplace=True)
+print_df_2c['$\sigma^2(\Delta \phi_{\text{corr}})$'] = '~0'
 
-print_df_2c.drop(columns='$\sigma^2(\Delta \phi_{corr})$', inplace=True)
+print_df_2c.drop(columns='$\sigma^2(\Delta \phi_{\text{corr}})$', inplace=True)
 
 print_df_2c_vals = print_df_2c.iloc[:, :1]
 print_df_2c_vars = print_df_2c.iloc[:, 1:]
@@ -458,5 +465,3 @@ ss_h2so4_df.plot.scatter(x='potential_V', y='abs_j_A/mm2', ax=ax_2d, c='C0', s=1
 ss_hcl_df.plot.scatter(x='potential_V', y='abs_j_A/mm2', ax=ax_2d, c='C3', s=1)
 #plt.show()
 plt.close(fig_2d)
-
-
